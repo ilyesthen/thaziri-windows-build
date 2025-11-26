@@ -25,8 +25,18 @@ jobs:
           node-version: '20'
           cache: 'npm'
       
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
+      
+      - name: Install Windows Build Tools
+        run: |
+          npm install --global node-gyp@latest
+          npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
       
       - name: Install dependencies
         run: npm ci
