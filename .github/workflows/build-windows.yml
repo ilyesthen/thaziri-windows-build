@@ -62,7 +62,7 @@ jobs:
   
   build-windows7-32bit:
     name: Build for Windows 7 32-bit (Legacy)
-    runs-on: windows-2019
+    runs-on: windows-2022
     timeout-minutes: 60
     
     steps:
