@@ -95,10 +95,9 @@ jobs:
       - name: Rename to indicate Win7 legacy
         run: |
           Get-ChildItem -Path release -Recurse -Filter "*.exe" | ForEach-Object {
-            $newName = $_.Name -replace "Setup-", "Setup-Win7-32bit-"
-            if ($newName -ne $_.Name) {
-              Rename-Item -Path $_.FullName -NewName $newName -Force
-            }
+            $newName = $_.Name -replace "Thaziri", "Thaziri-Win7"
+            Write-Host "Renaming: $($_.Name) -> $newName"
+            Rename-Item -Path $_.FullName -NewName $newName -Force
           }
       
       - name: Upload Windows 7 32-bit installer
@@ -106,7 +105,7 @@ jobs:
         with:
           name: windows7-32bit-installer
           path: |
-            release/**/*Win7-32bit*.exe
+            release/**/*Win7*.exe
           retention-days: 30
       
       - name: List Win7 legacy files
