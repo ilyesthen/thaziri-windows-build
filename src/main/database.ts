@@ -61,30 +61,32 @@ export function getPrismaClient(): PrismaClient {
     const databasePath = getDatabasePath()
     const databaseUrl = `file:${databasePath}`
     
-    // Get the path to the query engine
-    const queryEnginePath = isProduction()
-      ? getResourcePath('node_modules', '.prisma', 'client')
-      : undefined
+    // Set environment variable for Prisma schema location in production
+    if (isProduction()) {
+      const schemaPath = getResourcePath('prisma', 'schema.prisma')
+      process.env.PRISMA_QUERY_ENGINE_LIBRARY = getResourcePath(
+        'node_modules',
+        '.prisma',
+        'client',
+        process.platform === 'win32' ? 'query_engine-windows.dll.node' : 
+        process.platform === 'darwin' ? (process.arch === 'arm64' ? 'libquery_engine-darwin-arm64.dylib.node' : 'libquery_engine-darwin.dylib.node') :
+        'libquery_engine-linux.so.node'
+      )
+      
+      console.log('🔧 Production Prisma paths:')
+      console.log('   Schema:', schemaPath)
+      console.log('   Engine:', process.env.PRISMA_QUERY_ENGINE_LIBRARY)
+      console.log('   Database:', databasePath)
+    }
     
-    const config: any = {
+    prisma = new PrismaClient({
       datasources: {
         db: {
           url: databaseUrl
         }
       },
       log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-    }
-    
-    // Set the query engine library path for production
-    if (queryEnginePath) {
-      config.__internal = {
-        engine: {
-          cwd: queryEnginePath
-        }
-      }
-    }
-    
-    prisma = new PrismaClient(config)
+    })
   }
   return prisma
 }
