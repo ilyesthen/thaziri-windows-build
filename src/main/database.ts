@@ -1,3 +1,4 @@
+import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import path from 'path'
 import { app } from 'electron'
@@ -6,9 +7,8 @@ import fs from 'fs'
 // Constants for password hashing
 const SALT_ROUNDS = 10
 
-// Dynamically import PrismaClient to handle asar unpacking
-let PrismaClient: any
-let prisma: any | null = null
+// Singleton instance of Prisma Client
+let prisma: PrismaClient | null = null
 
 /**
  * Determine if running in production (packaged) or development
@@ -23,10 +23,8 @@ function isProduction(): boolean {
  */
 function getResourcePath(...paths: string[]): string {
   if (isProduction()) {
-    // In production, use app.getAppPath() which points to app.asar
-    // For unpacked resources, use process.resourcesPath
+    // In production, use app.asar.unpacked for Prisma files
     const resourcePath = path.join(process.resourcesPath, 'app.asar.unpacked', ...paths)
-    // Normalize path for current platform (handles \ vs /)
     return path.normalize(resourcePath)
   } else {
     // In development, use process.cwd()
@@ -63,50 +61,17 @@ function getDatabasePath(): string {
 }
 
 /**
- * Load PrismaClient from the correct location
- * In production, loads from unpacked asar to avoid module resolution errors
- */
-function loadPrismaClient() {
-  if (!PrismaClient) {
-    if (isProduction()) {
-      // In production, require from unpacked location
-      const prismaClientPath = getResourcePath('node_modules', '@prisma', 'client')
-      console.log('🔍 Loading PrismaClient from:', prismaClientPath)
-      
-      try {
-        const prismaModule = require(path.join(prismaClientPath, 'index.js'))
-        PrismaClient = prismaModule.PrismaClient
-        console.log('✅ PrismaClient loaded successfully from unpacked location')
-      } catch (error) {
-        console.error('❌ Failed to load PrismaClient from unpacked location:', error)
-        // Fallback to normal import
-        try {
-          PrismaClient = require('@prisma/client').PrismaClient
-          console.log('⚠️ Using fallback PrismaClient import')
-        } catch (fallbackError) {
-          console.error('❌ Fallback import also failed:', fallbackError)
-          throw fallbackError
-        }
-      }
-    } else {
-      // In development, use normal import
-      PrismaClient = require('@prisma/client').PrismaClient
-    }
-  }
-  return PrismaClient
-}
-
-/**
  * Get or create the Prisma Client instance
  */
-export function getPrismaClient(): any {
+export function getPrismaClient(): PrismaClient {
   if (!prisma) {
     const databasePath = getDatabasePath()
     const databaseUrl = `file:${databasePath}`
     
-    // Set environment variable for Prisma query engine location in production
+    // Set environment variable for Prisma in production
     if (isProduction()) {
-      const schemaPath = getResourcePath('prisma', 'schema.prisma')
+      // Point to the unpacked Prisma files
+      const prismaClientPath = getResourcePath('node_modules', '@prisma', 'client')
       
       // Get the correct query engine binary for this platform
       let queryEngineName: string
@@ -117,41 +82,23 @@ export function getPrismaClient(): any {
           ? 'libquery_engine-darwin-arm64.dylib.node'
           : 'libquery_engine-darwin.dylib.node'
       } else {
-        // Linux
         queryEngineName = 'libquery_engine-debian-openssl-3.0.x.so.node'
       }
       
-      const queryEnginePath = getResourcePath(
-        'node_modules',
-        '.prisma',
-        'client',
-        queryEngineName
-      )
+      const queryEnginePath = path.join(prismaClientPath, queryEngineName)
       
-      // Verify the query engine file exists
       if (fs.existsSync(queryEnginePath)) {
         process.env.PRISMA_QUERY_ENGINE_LIBRARY = queryEnginePath
-        console.log('✅ Prisma query engine found:', queryEnginePath)
-      } else {
-        console.error('❌ Prisma query engine NOT found at:', queryEnginePath)
-        console.error('   Platform:', process.platform)
-        console.error('   Architecture:', process.arch)
-        console.error('   Expected file:', queryEngineName)
       }
       
       console.log('🔧 Production Prisma Configuration:')
-      console.log('   Platform:', process.platform)
-      console.log('   Architecture:', process.arch)
-      console.log('   Schema:', schemaPath)
-      console.log('   Engine:', process.env.PRISMA_QUERY_ENGINE_LIBRARY)
       console.log('   Database:', databasePath)
+      console.log('   Prisma Client:', prismaClientPath)
+      console.log('   Query Engine:', queryEnginePath)
       console.log('   Engine exists:', fs.existsSync(queryEnginePath))
     }
     
-    // Load PrismaClient from correct location
-    const PrismaClientClass = loadPrismaClient()
-    
-    prisma = new PrismaClientClass({
+    prisma = new PrismaClient({
       datasources: {
         db: {
           url: databaseUrl

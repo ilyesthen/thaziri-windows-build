@@ -10,9 +10,11 @@
     "dev": "vite",
     "dev:instance1": "cross-env VITE_PORT=5173 MESSAGING_PORT=45679 vite",
     "dev:instance2": "cross-env VITE_PORT=5174 MESSAGING_PORT=45680 vite",
-    "build": "vite build && electron-builder --win",
-    "build:win-x64": "vite build && electron-builder --win --x64",
-    "build:win-ia32": "vite build && electron-builder --win --ia32",
+    "prepare:windows": "node scripts/prepare-windows-build.js",
+    "build": "vite build && electron-builder",
+    "build:win": "vite build && electron-builder --win --x64",
+    "build:win32": "vite build && electron-builder --win --ia32",
+    "build:win:all": "npm run prepare:windows && vite build && electron-builder --win --ia32 --x64",
     "preview": "vite preview",
     "dist": "npm run build",
     "pack": "electron-builder --dir",
@@ -71,7 +73,6 @@
     "productName": "Thaziri",
     "buildDependenciesFromSource": false,
     "npmRebuild": false,
-    "asar": true,
     "directories": {
       "output": "release/${version}"
     },
@@ -84,11 +85,10 @@
       "prisma.config.ts"
     ],
     "asarUnpack": [
-      "node_modules/.prisma/**/*",
-      "node_modules/@prisma/client/**/*",
-      "node_modules/prisma/**/*",
-      "prisma/**/*"
+      "node_modules/@prisma/**/*",
+      "node_modules/.prisma/**/*"
     ],
+    "afterPack": "./scripts/electron-builder-hook.js",
     "mac": {
       "icon": "resources/icon.icns",
       "target": [
