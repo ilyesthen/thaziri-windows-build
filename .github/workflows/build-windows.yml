@@ -57,4 +57,4 @@ jobs:
         if: always()
         run: |
           echo "Listing all release files:"
-          dir release /s /b
+          Get-ChildItem -Path release -Recurse -File | Select-Object FullName
