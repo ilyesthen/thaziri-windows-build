@@ -1,0 +1,215 @@
+/* Thaziri Clinic Brand Kit - Login Styles */
+
+:root {
+  /* Primary Colors */
+  --trustworthy-blue: #2A6484;
+  --action-teal: #429898;
+  
+  /* Neutrals */
+  --clean-white: #FFFFFF;
+  --near-black: #202020;
+  --medium-gray: #8A8A8F;
+  --light-gray: #F1F1F1;
+  
+  /* Typography - System fonts */
+  --font-primary: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--trustworthy-blue) 0%, var(--action-teal) 100%);
+  padding: 20px;
+  font-family: var(--font-primary);
+}
+
+.login-card {
+  background: var(--clean-white);
+  border-radius: 16px;
+  padding: 48px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  max-width: 480px;
+  width: 100%;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-card h1 {
+  color: var(--trustworthy-blue);
+  margin-bottom: 8px;
+  font-size: 34px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  color: var(--medium-gray);
+  text-align: center;
+  margin-bottom: 36px;
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--near-black);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid var(--light-gray);
+  border-radius: 10px;
+  font-size: 17px;
+  font-family: var(--font-primary);
+  color: var(--near-black);
+  background: var(--clean-white);
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--trustworthy-blue);
+  box-shadow: 0 0 0 3px rgba(42, 100, 132, 0.1);
+}
+
+.form-group input:disabled,
+.form-group select:disabled {
+  background-color: var(--light-gray);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-group input::placeholder {
+  color: var(--medium-gray);
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 17px;
+  font-weight: 600;
+  font-family: var(--font-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--action-teal);
+  color: var(--clean-white);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #3a8787;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(66, 152, 152, 0.3);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--clean-white);
+  color: var(--trustworthy-blue);
+  border: 1.5px solid var(--trustworthy-blue);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(42, 100, 132, 0.05);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background: #fee;
+  color: #c33;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 24px;
+  border-left: 4px solid #c33;
+  font-size: 15px;
+  font-weight: 500;
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+.no-users-message {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.no-users-message p {
+  color: var(--medium-gray);
+  margin-bottom: 24px;
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.no-users-message .btn-primary {
+  width: 100%;
+}
+
+/* Logo area at top of card */
+.login-logo {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login-logo-text {
+  font-size: 42px;
+  font-weight: 700;
+  color: var(--trustworthy-blue);
+  letter-spacing: -1px;
+}
+

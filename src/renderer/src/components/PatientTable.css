@@ -1,0 +1,210 @@
+.patient-table-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Table Info */
+.table-info {
+  padding: 16px 20px;
+  background: #f9f9f9;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.patient-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+}
+
+/* Scrollable Table */
+.table-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+/* Patient Table */
+.patient-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.patient-table thead {
+  position: sticky;
+  top: 0;
+  background: var(--trustworthy-blue, #2A6484);
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.patient-table th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--clean-white, #FFFFFF);
+  background: var(--trustworthy-blue, #2A6484);
+  border-bottom: 2px solid var(--action-teal, #429898);
+  white-space: nowrap;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.patient-table tbody tr {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+  user-select: none; /* Prevent text selection on double-click */
+}
+
+.patient-table tbody tr:hover {
+  background-color: #f8f9fa;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.patient-table tbody tr:active {
+  transform: scale(0.995);
+}
+
+.patient-table tbody tr.highlighted {
+  background-color: var(--trustworthy-blue, #2A6484) !important;
+  color: var(--clean-white, #FFFFFF);
+}
+
+.patient-table tbody tr.highlighted:hover {
+  background-color: #245570 !important;
+}
+
+.patient-table tbody tr.highlighted td {
+  color: var(--clean-white, #FFFFFF);
+}
+
+.patient-table td {
+  padding: 12px 16px;
+  color: #555;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Cell Specific Styles */
+.numero-cell {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #1976D2;
+  font-size: 13px;
+  min-width: 80px;
+}
+
+.date-cell {
+  color: #666;
+  font-size: 13px;
+  min-width: 100px;
+}
+
+.nom-cell {
+  font-weight: 600;
+  color: #333;
+  text-transform: uppercase;
+  min-width: 150px;
+}
+
+.prenom-cell {
+  font-weight: 500;
+  color: #444;
+  min-width: 120px;
+}
+
+.age-cell {
+  text-align: center;
+  color: #666;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.adresse-cell {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #666;
+}
+
+/* No Patients */
+.no-patients {
+  padding: 80px 20px;
+  text-align: center;
+  color: #999;
+}
+
+.no-patients p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Keyboard Focus Styles */
+.patient-table tbody tr:focus {
+  outline: 2px solid #2196F3;
+  outline-offset: -2px;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .patient-table {
+    font-size: 13px;
+  }
+  
+  .patient-table th,
+  .patient-table td {
+    padding: 10px 12px;
+  }
+  
+  .adresse-cell {
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .patient-table {
+    font-size: 12px;
+  }
+  
+  .patient-table th,
+  .patient-table td {
+    padding: 8px 10px;
+  }
+  
+  .adresse-cell {
+    max-width: 150px;
+  }
+  
+  .nom-cell,
+  .prenom-cell {
+    min-width: 100px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .patient-table-container {
+    box-shadow: none;
+  }
+  
+  .patient-table tbody tr.highlighted {
+    background-color: #e0e0e0 !important;
+    border-left: 4px solid #000;
+  }
+  
+  .patient-table tbody tr:hover {
+    background-color: transparent;
+  }
+}

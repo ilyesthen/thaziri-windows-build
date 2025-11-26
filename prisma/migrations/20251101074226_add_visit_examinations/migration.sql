@@ -1,0 +1,57 @@
+-- CreateTable
+CREATE TABLE "visit_examinations" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "record_number" INTEGER,
+    "patient_code" INTEGER NOT NULL,
+    "visit_date" TEXT NOT NULL,
+    "medecin" TEXT,
+    "sv_left" TEXT,
+    "av_left" TEXT,
+    "sphere_left" TEXT,
+    "cylinder_left" TEXT,
+    "axis_left" TEXT,
+    "vl_left" TEXT,
+    "k1_left" TEXT,
+    "k2_left" TEXT,
+    "r1_left" TEXT,
+    "r2_left" TEXT,
+    "r0_left" TEXT,
+    "pachy_left" TEXT,
+    "toc_left" TEXT,
+    "notes_left" TEXT,
+    "gonio_left" TEXT,
+    "to_left" TEXT,
+    "laf_left" TEXT,
+    "fo_left" TEXT,
+    "sv_right" TEXT,
+    "av_right" TEXT,
+    "sphere_right" TEXT,
+    "cylinder_right" TEXT,
+    "axis_right" TEXT,
+    "vl_right" TEXT,
+    "k1_right" TEXT,
+    "k2_right" TEXT,
+    "r1_right" TEXT,
+    "r2_right" TEXT,
+    "r0_right" TEXT,
+    "pachy_right" TEXT,
+    "toc_right" TEXT,
+    "notes_right" TEXT,
+    "gonio_right" TEXT,
+    "to_right" TEXT,
+    "laf_right" TEXT,
+    "fo_right" TEXT,
+    "addition" TEXT,
+    "dip" TEXT,
+    "cycloplegie" TEXT,
+    "conduite_a_tenir" TEXT,
+    "diagnostic" TEXT,
+    "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" DATETIME NOT NULL
+);
+
+-- CreateIndex
+CREATE INDEX "visit_examinations_patient_code_idx" ON "visit_examinations"("patient_code");
+
+-- CreateIndex
+CREATE INDEX "visit_examinations_visit_date_idx" ON "visit_examinations"("visit_date");

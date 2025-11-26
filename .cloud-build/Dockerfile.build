@@ -1,0 +1,32 @@
+FROM electronuserland/builder:wine
+
+# Install Node.js and dependencies
+RUN apt-get update && apt-get install -y \
+    nodejs \
+    npm \
+    git \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Install dependencies
+RUN npm ci --force
+
+# Generate Prisma Client for all platforms
+RUN npx prisma generate
+
+# Copy application source
+COPY . .
+
+# Build for Windows
+RUN npm run build:win:all
+
+# The built files will be in /app/release/

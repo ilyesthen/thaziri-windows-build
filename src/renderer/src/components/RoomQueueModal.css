@@ -1,0 +1,287 @@
+.room-queue-modal {
+  background: white;
+  border-radius: 12px;
+  width: 900px;
+  max-width: 95%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #429898;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.modal-close:hover {
+  background: #e0e0e0;
+}
+
+/* Filter Tabs */
+.modal-filter-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px;
+  background: #f8f9fa;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.filter-tab {
+  flex: 1;
+  padding: 10px 16px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.filter-tab:hover {
+  background: #e9ecef;
+  border-color: #429898;
+  color: #429898;
+  transform: translateY(-2px);
+}
+
+.filter-tab.active {
+  background: #429898;
+  border-color: #429898;
+  color: white;
+  box-shadow: 0 4px 12px rgba(66, 152, 152, 0.3);
+}
+
+.filter-tab.urgent:hover {
+  border-color: #DC3545;
+  color: #DC3545;
+}
+
+.filter-tab.urgent.active {
+  background: #DC3545;
+  border-color: #DC3545;
+  color: white;
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.modal-body {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.no-patients-message {
+  text-align: center;
+  padding: 40px;
+  color: #8A8A8F;
+  font-style: italic;
+}
+
+.queue-table {
+  width: 100%;
+}
+
+.queue-table table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.queue-table th {
+  background: #429898;
+  color: white;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.queue-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 14px;
+}
+
+.queue-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.queue-table tbody tr.hovered-row {
+  background: #e8f5e9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.queue-table tbody tr.checked-row {
+  background: #fff3e0;
+  border-left: 4px solid #ff9800;
+}
+
+.queue-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.open-file-btn {
+  background: #429898;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.open-file-btn:hover {
+  background: #3a8585;
+}
+
+/* Patient Checkbox */
+.patient-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #429898;
+  transform: scale(1.2);
+}
+
+/* Delete Patient Button */
+.delete-patient-btn {
+  background: #ff5252;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-patient-btn:hover {
+  background: #d32f2f;
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.3);
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-close {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-close:hover {
+  background: #5a6268;
+}
+
+/* Timer display for doctor-sent patients */
+.timer-display {
+  font-size: 12px;
+  color: #429898;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* Urgent patient styling */
+.urgent-row {
+  background-color: #fff5f5 !important;
+}
+
+.urgent-row:hover {
+  background-color: #ffe5e5 !important;
+}
+
+.urgent-patient-name {
+  color: #DC3545;
+  font-weight: 600;
+}
+
+/* Action type badge */
+.action-type-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* Scrollbar styles */
+.modal-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: #429898;
+  border-radius: 5px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: #3a8585;
+}

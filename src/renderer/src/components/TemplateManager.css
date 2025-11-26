@@ -1,0 +1,87 @@
+.template-manager-simple {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+
+.template-manager-simple h3 {
+  margin: 0 0 8px 0;
+  color: #2A6484;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.template-list-simple {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.template-item-simple {
+  width: 100%;
+}
+
+.template-text-simple {
+  padding: 10px 12px;
+  color: #1f2937;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  border-left: 3px solid transparent;
+}
+
+.template-text-simple:hover {
+  background-color: rgba(42, 100, 132, 0.08);
+  border-left-color: #2A6484;
+}
+
+.template-input-simple {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #429898;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.template-input-simple:focus {
+  border-color: #2A6484;
+  box-shadow: 0 0 0 3px rgba(42, 100, 132, 0.1);
+}
+
+.add-template-btn-simple {
+  width: 100%;
+  padding: 10px 12px;
+  background-color: #fff;
+  border: 2px dashed #429898;
+  border-radius: 4px;
+  color: #429898;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.add-template-btn-simple:hover {
+  background-color: rgba(66, 152, 152, 0.05);
+  border-color: #2A6484;
+  color: #2A6484;
+}
+
+.template-helper-text {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 8px;
+  padding: 8px;
+  background-color: rgba(42, 100, 132, 0.03);
+  border-radius: 4px;
+}

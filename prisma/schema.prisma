@@ -1,0 +1,417 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model for managing application users
+model User {
+  id                Int      @id @default(autoincrement())
+  email             String   @unique
+  name              String
+  password          String
+  role              String   @default("nurse") // admin, doctor, nurse, assistant_1, assistant_2
+  defaultPercentage Int?     // Default percentage for assistants
+  currentSalleId    Int?     @map("current_salle_id") // Current room/office they're working in
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  notes             Note[]
+  tasks             Task[]
+}
+
+// Assistant Session model - tracks which person is logged in as assistant_1 or assistant_2
+model AssistantSession {
+  id              Int      @id @default(autoincrement())
+  userId          Int      @map("user_id") // References User (assistant_1 or assistant_2 account)
+  assistantUserId Int?     @map("assistant_user_id") // References AssistantUser
+  assistantName   String   @map("assistant_name") // Full name of the person using the account
+  percentage      Int      @default(0) // Their commission percentage
+  salleId         Int?     @map("salle_id") // Which room/office they're working in
+  loginTimestamp  DateTime @default(now()) @map("login_timestamp")
+  logoutTimestamp DateTime? @map("logout_timestamp")
+  
+  @@index([userId])
+  @@index([assistantName])
+  @@index([assistantUserId])
+  @@index([salleId])
+  @@map("assistant_sessions")
+}
+
+// Salle model - rooms/offices in the clinic
+model Salle {
+  id                Int       @id @default(autoincrement())
+  name              String    @unique // Room name (e.g., "Salle 1", "Cabinet A")
+  description       String?   // Optional description
+  isActive          Boolean   @default(true) @map("is_active") // Can be disabled
+  activeUserId      Int?      @map("active_user_id") // ID of user actively using this salle
+  activeUserName    String?   @map("active_user_name") // Name of active user
+  activeUserRole    String?   @map("active_user_role") // Role of active user
+  activeSessionName String?   @map("active_session_name") // For assistants
+  lockedAt          DateTime? @map("locked_at") // When it was locked
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  
+  @@map("salles")
+}
+
+// AssistantUser model - individual assistant person tracking
+model AssistantUser {
+  id          Int      @id @default(autoincrement())
+  fullName    String   @map("full_name") // Full name as entered
+  firstName   String   @map("first_name") // Extracted first name
+  lastName    String   @map("last_name") // Extracted last name
+  percentage  Int      @default(0) // Their default percentage
+  role        String   @default("assistant") // assistant_1 or assistant_2
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  @@index([firstName, lastName])
+  @@index([fullName])
+  @@map("assistant_users")
+}
+
+// Note model for a simple note-taking feature
+model Note {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tags      Tag[]
+}
+
+// Task model for task management
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  priority    String   @default("medium") // low, medium, high
+  dueDate     DateTime?
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Tag model for organizing notes
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  color     String   @default("#3B82F6")
+  notes     Note[]
+  createdAt DateTime @default(now())
+}
+
+// Patient model for clinic patient management
+model Patient {
+  id                  Int       @id @default(autoincrement())
+  recordNumber        Int?      // N__Enr. from XML
+  departmentCode      Int?      // CDEP from XML
+  firstName           String    // PRP from XML
+  lastName            String    // NOMP from XML
+  fullName            String    // NOP from XML
+  age                 Int?      // AGE from XML
+  dateOfBirth         DateTime? // DATEN from XML
+  address             String?   // ADP from XML
+  phone               String?   // TEL from XML
+  code                String?   // CODE_B from XML
+  gender              String?   // Genre: Homme, Femme, Autre
+  usefulInfo          String?   // INFOR_UTILES from XML
+  photo1              String?   // PH1 from XML
+  generalHistory      String?   // ATCDG from XML
+  ophthalmoHistory    String?   // ATCDO from XML
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  originalCreatedDate String?   // crée_le from XML
+  
+  @@index([lastName, firstName])
+  @@index([code])
+}
+
+// Message Template model for storing reusable message templates
+model MessageTemplate {
+  id      Int    @id @default(autoincrement())
+  content String
+  
+  @@map("message_templates")
+}
+
+// Message model for persistent messaging
+model Message {
+  id               Int       @id @default(autoincrement())
+  senderId         Int
+  senderName       String
+  senderRole       String
+  content          String
+  roomId           Int?      // For room-based messages
+  recipientId      Int?      // For direct messages
+  recipientName    String?
+  recipientRole    String?
+  patientName      String?   // Patient context
+  patientId        Int?      // Patient ID context
+  audioData        String?   // Base64 encoded audio
+  isVoiceMessage   Boolean   @default(false)
+  status           String    @default("unread") // unread, read
+  sentAt           DateTime  @default(now())
+  readAt           DateTime?
+  
+  @@index([roomId, sentAt])
+  @@index([recipientId, sentAt])
+  @@index([senderId, sentAt])
+  @@map("messages")
+}
+
+// Actes Honoraires model for medical acts and their fees
+model ActesHonoraires {
+  id                     Int    @id @default(autoincrement())
+  actePratique           String @map("acte_pratique")
+  honoraireEncaisser     Int    @default(0) @map("honoraire_encaisser")
+  percentageAssistant1   Int    @default(0) @map("percentage_assistant_1")
+  percentageAssistant2   Int    @default(0) @map("percentage_assistant_2")
+  
+  @@map("actes_honoraires")
+}
+
+// Honoraires Transactions - actual medical acts performed
+model Honoraire {
+  id              Int      @id @default(autoincrement())
+  date            String   // Date in DD/MM/YYYY format from XML
+  time            String   // Time in HH:MM format (HORAIR from XML)
+  patientCode     Int      @map("patient_code") // CDEP from XML - links to Patient.departmentCode
+  actePratique    String   @map("acte_pratique") // ACTE from XML
+  montant         Int      // MONATNT from XML
+  medecin         String   // MEDCIN from XML
+  mtAssistant     Int?     @map("mt_assistant") // MT_ASSISTANT from XML
+  createdAt       DateTime @default(now())
+  
+  @@index([date])
+  @@index([medecin])
+  @@index([patientCode])
+  @@map("honoraires")
+}
+
+// Audit Log model for tracking user actions
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  timestamp   DateTime @default(now())
+  userId      Int?     @map("user_id")
+  userRole    String?  @map("user_role")
+  sessionName String?  @map("session_name")
+  actionType  String?  @map("action_type")
+  details     String?
+  
+  @@index([userId])
+  @@index([timestamp])
+  @@index([actionType])
+  @@map("audit_log")
+}
+
+// Visit Examination model - stores detailed eye examination data for each visit
+model VisitExamination {
+  id              Int      @id @default(autoincrement())
+  recordNumber    Int?     @map("record_number") // N__Enr. from XML
+  patientCode     Int      @map("patient_code") // CDEP - links to Patient.departmentCode
+  visitDate       String   @map("visit_date") // DATECLI from XML
+  medecin         String?  // MEDCIN from XML
+  motif           String?  // Motif de consultation
+  actesGeneraux   String?  @map("actes_generaux") // Actes Généraux
+  actesOphtalmologiques String? @map("actes_ophtalmologiques") // Actes Ophtalmologiques
+  
+  // Left Eye (Gauche) measurements
+  svLeft          String?  @map("sv_left") // SCOG
+  avLeft          String?  @map("av_left") // AVOG
+  sphereLeft      String?  @map("sphere_left") // p3
+  cylinderLeft    String?  @map("cylinder_left") // p5
+  axisLeft        String?  @map("axis_left") // AXG
+  vlLeft          String?  @map("vl_left") // Calculated
+  k1Left          String?  @map("k1_left") // K1_G
+  k2Left          String?  @map("k2_left") // K2_G
+  r1Left          String?  @map("r1_left") // R1_G
+  r2Left          String?  @map("r2_left") // R2_G
+  r0Left          String?  @map("r0_left") // RAYONG
+  pachyLeft       String?  @map("pachy_left") // pachy1_g or pachy2_g
+  tocLeft         String?  @map("toc_left") // TOOG
+  notesLeft       String?  @map("notes_left") // commentaire_G
+  gonioLeft       String?  @map("gonio_left") // GONIO_G if exists
+  toLeft          String?  @map("to_left") // Can be same as TOOG
+  lafLeft         String?  @map("laf_left") // LAF_G
+  foLeft          String?  @map("fo_left") // FO_G
+  
+  // Right Eye (Droit) measurements
+  svRight         String?  @map("sv_right") // SCOD
+  avRight         String?  @map("av_right") // AVOD
+  sphereRight     String?  @map("sphere_right") // p1
+  cylinderRight   String?  @map("cylinder_right") // p2
+  axisRight       String?  @map("axis_right") // AXD
+  vlRight         String?  @map("vl_right") // Calculated
+  k1Right         String?  @map("k1_right") // K1_D
+  k2Right         String?  @map("k2_right") // K2_D
+  r1Right         String?  @map("r1_right") // R1_d
+  r2Right         String?  @map("r2_right") // R2_d
+  r0Right         String?  @map("r0_right") // RAYOND
+  pachyRight      String?  @map("pachy_right") // pachy1_D or pachy2_d
+  tocRight        String?  @map("toc_right") // TOOD
+  notesRight      String?  @map("notes_right") // comentaire_D
+  gonioRight      String?  @map("gonio_right") // GONIO_D if exists
+  toRight         String?  @map("to_right") // Can be same as TOOD
+  lafRight        String?  @map("laf_right") // LAF
+  foRight         String?  @map("fo_right") // FO
+  
+  // Common fields
+  addition        String?  // Addition/EP
+  dip             String?  // EP (D.I.P)
+  cycloplegie     String?  // cycloplégie
+  conduiteATenir  String?  @map("conduite_a_tenir") // CAT
+  diagnostic      String?  @map("diagnostic") // DIIAG or Diagn
+  
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  @@index([patientCode])
+  @@index([visitDate])
+  @@map("visit_examinations")
+}
+
+// Payment Validation model - tracks validated payments for visits
+model PaymentValidation {
+  id                Int      @id @default(autoincrement())
+  patientCode       Int      @map("patient_code") // Links to Patient.departmentCode
+  patientName       String   @map("patient_name")
+  visitDate         String   @map("visit_date") // Date of the visit
+  visitId           Int?     @map("visit_id") // Links to VisitExamination.id if applicable
+  totalAmount       Int      @map("total_amount") // Total payment amount in DA
+  selectedActs      String   @map("selected_acts") // JSON array of selected acts
+  validatedBy       String   @map("validated_by") // Name of user who validated
+  validatedByUserId Int      @map("validated_by_user_id") // User ID
+  validatedByRole   String   @map("validated_by_role") // User role
+  validatedAt       DateTime @default(now()) @map("validated_at")
+  status            String   @default("completed") // completed, cancelled
+  notes             String?  // Optional notes
+  
+  @@index([patientCode])
+  @@index([visitDate])
+  @@index([validatedByUserId])
+  @@index([validatedAt])
+  @@map("payment_validations")
+}
+
+// Payment Log model - detailed audit trail for payment actions
+model PaymentLog {
+  id              Int      @id @default(autoincrement())
+  paymentId       Int      @map("payment_id") // Links to PaymentValidation.id
+  actionType      String   @map("action_type") // created, modified, deleted, cancelled
+  actionBy        String   @map("action_by") // Name of user
+  actionByUserId  Int      @map("action_by_user_id")
+  actionByRole    String   @map("action_by_role")
+  actionDetails   String   @map("action_details") // JSON with detailed info
+  timestamp       DateTime @default(now())
+  
+  @@index([paymentId])
+  @@index([actionByUserId])
+  @@index([timestamp])
+  @@map("payment_logs")
+}
+
+// Patient Queue model - tracks patients sent between nurses and doctors
+model PatientQueue {
+  id              Int       @id @default(autoincrement())
+  patientCode     Int       @map("patient_code") // Links to Patient.departmentCode
+  patientName     String    @map("patient_name") // Patient full name
+  fromUserId      Int       @map("from_user_id") // Who sent the patient
+  fromUserName    String    @map("from_user_name") // Name of sender
+  fromUserRole    String    @map("from_user_role") // Role of sender (nurse/doctor/assistant)
+  toUserId        Int?      @map("to_user_id") // Who the patient was sent to
+  toUserName      String?   @map("to_user_name") // Name of recipient
+  toUserRole      String?   @map("to_user_role") // Role of recipient
+  roomId          Int?      @map("room_id") // Which room/salle
+  roomName        String?   @map("room_name") // Room name
+  actionType      String?   @map("action_type") // S, D, G, ODG (for doctor->nurse), null for nurse->doctor
+  actionLabel     String?   @map("action_label") // Human readable action label
+  isUrgent        Boolean   @default(false) @map("is_urgent") // Marked as urgent
+  visitId         Int?      @map("visit_id") // Links to active VisitExamination.id
+  sentAt          DateTime  @default(now()) @map("sent_at") // When patient was sent
+  seenAt          DateTime? @map("seen_at") // When recipient clicked/viewed
+  completedAt     DateTime? @map("completed_at") // When action was completed
+  status          String    @default("pending") // pending, seen, completed, cancelled
+  isChecked       Boolean   @default(false) @map("is_checked") // Marked with checkbox (visible to doctor)
+  
+  @@index([toUserId, status])
+  @@index([fromUserId])
+  @@index([patientCode])
+  @@index([sentAt])
+  @@map("patient_queue")
+}
+
+// Medicine model - stores all medicines from 21.xml
+model Medicine {
+  id              Int      @id
+  code            String   @unique // Medicine code/name (CODELIB)
+  libprep         String   // Full prescription text (LIBPREP)
+  nbpres          Int      @default(0) // Default prescription count from XML
+  actualCount     Int      @default(0) @map("actual_count") // Actual count from ordonnances
+  nature          String   @default("O") // Nature (O, N, etc.)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  @@index([code])
+  @@index([actualCount])
+  @@map("medicines")
+}
+
+// Quantity model - stores quantity options from 22.xml
+model Quantity {
+  id        Int      @id
+  qtite     String   // Quantity text (1 Flc, 2 Btes, etc.)
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@map("quantities")
+}
+
+// CompteRendu model - stores medical report templates from hi.xml
+model CompteRendu {
+  id              Int      @id
+  codeCompte      String   @unique @map("code_compte") // CODE_COMPTE - Template code/name
+  contenu         String   // CONTENU - Template content with formatting
+  titreEchodp     String   @map("titre_echodp") // TITRE_ECHODP - Report title
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  @@index([codeCompte])
+  @@map("comptes_rendus")
+}
+
+// Ordonnance model - stores prescription history from very.xml
+model Ordonnance {
+  id            Int      @id @default(autoincrement())
+  dateOrd       String?  @map("date_ord") // Date of ordonnance
+  patientCode   Int      @map("patient_code") // CDEP - links to Patient
+  age           Int?     // AG2 - Patient age at time
+  seq           Int?     // SEQ - Sequence number
+  strait        String?  // STRAIT - Main prescription content
+  strait1       String?  // Additional content 1
+  strait2       String?  // Additional content 2
+  strait3       String?  // Additional content 3
+  medecin       String?  // MEDCIN - Doctor name
+  seqpat        String?  // SEQPAT - Patient sequence
+  actex         String?  // ACTEX - Act type (ORDONNANCE, etc.)
+  actex1        String?  // Additional act type
+  actex2        String?  // Additional act type
+  addressedBy   String?  @map("addressed_by") // ADressé_par
+  titreCr       String?  @map("titre_cr") // titre_cr
+  createdAt     DateTime @default(now()) @map("created_at")
+  
+  @@index([patientCode])
+  @@index([medecin])
+  @@index([dateOrd])
+  @@map("ordonnances")
+}

@@ -1,0 +1,245 @@
+.salle-selection-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #FFFFFF;
+  padding: 24px;
+}
+
+.salle-selection-card {
+  background: white;
+  border-radius: 12px;
+  padding: 48px;
+  max-width: 700px;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.salle-icon {
+  display: none;
+}
+
+.salle-selection-card h2 {
+  color: #2A6484;
+  font-size: 34px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+.salle-subtitle {
+  color: #8A8A8F;
+  font-size: 17px;
+  font-weight: 400;
+  margin-bottom: 32px;
+}
+
+.error-message {
+  background-color: #FFF5F5;
+  color: #DC3545;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  font-size: 15px;
+  border: 1px solid #FEE;
+}
+
+.salles-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.salle-option {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid #F1F1F1;
+  border-radius: 8px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  min-height: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.salle-option:hover {
+  border-color: #429898;
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.salle-option.selected {
+  border-color: #429898;
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.salle-option-icon {
+  display: none;
+}
+
+.salle-option-name {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 500;
+  color: #202020;
+}
+
+.salle-option-description {
+  font-size: 15px;
+  color: #8A8A8F;
+  margin-top: 4px;
+}
+
+.salle-option-checkmark {
+  position: static;
+  background: #429898;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.salle-submit-btn {
+  width: 100%;
+  padding: 14px 24px;
+  background: #429898;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+.salle-submit-btn:hover:not(:disabled) {
+  background: #2A6484;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.salle-submit-btn:disabled {
+  background: #F1F1F1;
+  color: #8A8A8F;
+  cursor: not-allowed;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #F1F1F1;
+  border-top: 3px solid #429898;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Warning Message Styles */
+.warning-message {
+  display: flex;
+  gap: 12px;
+  background: #FFF9E6;
+  border: 1px solid #FFE08A;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+  align-items: flex-start;
+}
+
+.warning-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.warning-content {
+  flex: 1;
+}
+
+.warning-content p {
+  margin: 0 0 8px 0;
+  color: #8A6D3B;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.warning-content ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #8A6D3B;
+  font-size: 14px;
+}
+
+.warning-content li {
+  margin-bottom: 4px;
+}
+
+/* Lock Icon Styles */
+.salle-lock-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 18px;
+  opacity: 0.6;
+}
+
+.salle-option.locked {
+  opacity: 0.85;
+  cursor: pointer;
+}
+
+.salle-option.locked:hover {
+  border-color: #FFE08A;
+  background: #FFF9E6;
+}
+
+/* Status Label Styles */
+.salle-option-status {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.salle-option-status.status-available {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.salle-option-status.status-locked {
+  background: #FFF9E6;
+  color: #8A6D3B;
+}
+
+.salle-option-status.status-yours {
+  background: #E3F2FD;
+  color: #1976D2;
+}
+
+/* View Only Mode Button */
+.salle-submit-btn.view-only {
+  background: #8A6D3B;
+}
+
+.salle-submit-btn.view-only:hover:not(:disabled) {
+  background: #6D5730;
+}
+
+

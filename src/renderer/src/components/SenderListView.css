@@ -1,0 +1,71 @@
+.sender-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sender-list-view h3 {
+  margin: 0 0 12px 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.sender-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sender-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sender-item:hover {
+  border-color: #2A6484;
+  background: linear-gradient(135deg, rgba(42, 100, 132, 0.05) 0%, rgba(66, 152, 152, 0.05) 100%);
+  transform: translateX(4px);
+}
+
+.sender-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sender-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.sender-role {
+  font-size: 0.85rem;
+  color: #6366f1;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.sender-id {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-family: 'Courier New', monospace;
+}
+
+.message-count-badge {
+  background: linear-gradient(135deg, #2A6484 0%, #429898 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}

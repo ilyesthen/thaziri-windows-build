@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  builder-windows:
+    build:
+      context: .
+      dockerfile: Dockerfile.build
+    volumes:
+      - ./release:/app/release
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - ELECTRON_CACHE=/root/.cache/electron
+      - ELECTRON_BUILDER_CACHE=/root/.cache/electron-builder
+    command: npm run build:win:all
+
+  builder-mac:
+    image: electronuserland/builder:latest
+    volumes:
+      - .:/project
+      - ./release:/project/release
+    working_dir: /project
+    command: npm run build:mac

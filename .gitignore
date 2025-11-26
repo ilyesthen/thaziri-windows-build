@@ -1,0 +1,42 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+/generated/prisma
+
+# Build output
+dist/
+dist-electron/
+release/
+out/
+
+# Database files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+.cache/
+temp/
+tmp/
+
+# Export files (keep structure but not actual exports)
+export/*.json
+
+# Test data
+*.test.db

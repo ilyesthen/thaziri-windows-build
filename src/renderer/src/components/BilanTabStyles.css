@@ -1,0 +1,235 @@
+/* Bilan Tab Styles */
+
+.bilan-tab {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.bilan-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #F1F1F1;
+}
+
+.bilan-right {
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  background: #FAFAFA;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #F1F1F1;
+}
+
+/* ART Buttons */
+.art-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.art-button.art-w {
+  background: #2A6484;
+  color: white;
+}
+
+.art-button.art-w:hover {
+  background: #1e4f6b;
+  transform: translateY(-1px);
+}
+
+.art-button.art-scol {
+  background: #429898;
+  color: white;
+}
+
+.art-button.art-scol:hover {
+  background: #3a8686;
+  transform: translateY(-1px);
+}
+
+/* Rich Text Toolbar */
+.text-toolbar {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 8px;
+  background: #F8F9FA;
+  border: 1px solid #E0E0E0;
+  border-radius: 6px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar-btn {
+  padding: 6px 10px;
+  border: 1px solid #D0D0D0;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toolbar-btn:hover {
+  background: #E8F5F5;
+  border-color: #429898;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: #D0D0D0;
+  margin: 0 4px;
+}
+
+.toolbar-select {
+  padding: 4px 8px;
+  border: 1px solid #D0D0D0;
+  border-radius: 4px;
+  background: white;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.toolbar-select:focus {
+  outline: none;
+  border-color: #429898;
+}
+
+/* Bilan Editor */
+.bilan-editor {
+  flex: 1;
+  padding: 16px;
+  border: 2px solid #F1F1F1;
+  borderRadius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  line-height: 1.8;
+  background: white;
+  color: #2A6484;
+  font-weight: 700;
+  min-height: 400px;
+  resize: none;
+  margin-top: 12px;
+}
+
+.bilan-editor:focus {
+  outline: none;
+  border-color: #429898;
+}
+
+/* Filter Buttons */
+.filter-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #2A6484;
+  color: white;
+  flex: 1;
+  min-width: 70px;
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  background: #1e4f6b;
+  transform: translateY(-1px);
+}
+
+.filter-btn.active {
+  background: #429898;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Bilan Acts List */
+.bilan-acts-list {
+  margin-top: 12px;
+  flex: 1;
+  overflow-y: auto;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #F1F1F1;
+  padding: 8px;
+  max-height: 500px;
+}
+
+.bilan-act-item {
+  padding: 10px;
+  border-bottom: 1px solid #F1F1F1;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.bilan-act-item:hover {
+  background: #F8FAFB !important;
+}
+
+.bilan-act-item:last-child {
+  border-bottom: none;
+}
+
+/* Acts Count */
+.acts-count {
+  margin-top: 12px;
+  padding: 8px;
+  background: #2A6484;
+  color: white;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* Scrollbars for Bilan */
+.bilan-acts-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bilan-acts-list::-webkit-scrollbar-track {
+  background: #F1F1F1;
+  border-radius: 4px;
+}
+
+.bilan-acts-list::-webkit-scrollbar-thumb {
+  background: #8A8A8F;
+  border-radius: 4px;
+}
+
+.bilan-acts-list::-webkit-scrollbar-thumb:hover {
+  background: #6A6A6F;
+}

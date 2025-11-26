@@ -1,0 +1,59 @@
+name: Build Windows App
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        arch: [x64, ia32]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Set DATABASE_URL for Prisma
+        run: echo "DATABASE_URL=file:./prisma/dev.db" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      
+      - name: Generate Prisma Client
+        run: npx prisma generate
+      
+      - name: Build Electron app for Windows ${{ matrix.arch }}
+        run: npm run build
+        env:
+          ARCH: ${{ matrix.arch }}
+      
+      - name: Upload Windows ${{ matrix.arch }} artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: thaziri-windows-${{ matrix.arch }}
+          path: |
+            release/*/Thaziri-Setup-*.exe
+            release/*/*.exe
+          retention-days: 30
+      
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release/*/Thaziri-Setup-*.exe
+            release/*/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

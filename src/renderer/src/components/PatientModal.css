@@ -1,0 +1,247 @@
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content */
+.modal-content {
+  background: var(--clean-white, #FFFFFF);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 420px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 28px;
+  border-bottom: 2px solid var(--light-gray, #F1F1F1);
+  background: var(--trustworthy-blue, #2A6484);
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Modal Error */
+.modal-error {
+  margin: 20px 28px 0;
+  padding: 12px 16px;
+  background: #ffebee;
+  border-left: 4px solid #f44336;
+  border-radius: 4px;
+  color: #c62828;
+  font-size: 14px;
+}
+
+/* Patient Form */
+.patient-form {
+  padding: 28px;
+}
+
+.modal-body form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--near-black, #202020);
+  margin-bottom: 8px;
+  font-family: var(--font-primary);
+}
+
+.form-group label .required {
+  color: #DC3545;
+  margin-left: 4px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 10px 14px;
+  font-size: 14px;
+  border: 2px solid var(--light-gray, #F1F1F1);
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+  background: var(--clean-white, #FFFFFF);
+  color: var(--near-black, #202020);
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: var(--action-teal, #429898);
+  box-shadow: 0 0 0 3px rgba(66, 152, 152, 0.1);
+}
+
+.form-group input:disabled,
+.form-group textarea:disabled,
+.form-group select:disabled {
+  background: var(--light-gray, #F1F1F1);
+  cursor: not-allowed;
+  color: var(--medium-gray, #8A8A8F);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 20px;
+  border-top: 1px solid var(--light-gray, #F1F1F1);
+}
+
+.modal-actions button[type="button"] {
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border: 2px solid var(--light-gray, #F1F1F1);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--clean-white, #FFFFFF);
+  color: var(--near-black, #202020);
+  font-family: var(--font-primary);
+}
+
+.modal-actions button[type="button"]:hover:not(:disabled) {
+  border-color: var(--medium-gray, #8A8A8F);
+  background: var(--light-gray, #F1F1F1);
+}
+
+.modal-actions button[type="submit"],
+.modal-actions button.primary {
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--action-teal, #429898);
+  color: var(--clean-white, #FFFFFF);
+  font-family: var(--font-primary);
+  box-shadow: 0 2px 8px rgba(66, 152, 152, 0.3);
+}
+
+.modal-actions button[type="submit"]:hover:not(:disabled),
+.modal-actions button.primary:hover:not(:disabled) {
+  background: #3a8585;
+  box-shadow: 0 4px 12px rgba(66, 152, 152, 0.4);
+  transform: translateY(-2px);
+}
+
+.modal-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    max-height: 95vh;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-header {
+    padding: 20px;
+  }
+  
+  .modal-header h2 {
+    font-size: 20px;
+  }
+  
+  .patient-form {
+    padding: 20px;
+  }
+}

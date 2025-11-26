@@ -1,0 +1,114 @@
+name: Professional Cloud Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - windows
+          - mac
+          - linux
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    if: github.event.inputs.build_type == 'windows' || github.event.inputs.build_type == 'all' || startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install Dependencies
+        run: |
+          npm ci --force
+          
+      - name: Generate Prisma Client for Windows
+        run: |
+          npx prisma generate --schema=./prisma/schema.prisma
+          
+      - name: Build Electron App
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm run build:win:all
+          
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-builds
+          path: |
+            release/*/*.exe
+            release/*/*.msi
+            release/*/*.appx
+
+  build-mac:
+    runs-on: macos-latest
+    if: github.event.inputs.build_type == 'mac' || github.event.inputs.build_type == 'all' || startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install Dependencies
+        run: |
+          npm ci --force
+          
+      - name: Generate Prisma Client for macOS
+        run: |
+          npx prisma generate --schema=./prisma/schema.prisma
+          
+      - name: Build Electron App
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_LINK: ${{ secrets.MAC_CERTS }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTS_PASSWORD }}
+        run: |
+          npm run build:mac
+          
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-builds
+          path: |
+            release/*/*.dmg
+            release/*/*.zip
+            release/*/*.pkg
+
+  release:
+    needs: [build-windows, build-mac]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            windows-builds/**/*.exe
+            mac-builds/**/*.dmg
+          generate_release_notes: true
+          draft: false
+          prerelease: false

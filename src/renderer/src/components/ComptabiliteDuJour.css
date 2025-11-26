@@ -1,0 +1,701 @@
+/* Comptabilite Du Jour - Fullscreen Modal with Brand Kit Design */
+
+.modal-overlay-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+}
+
+.comptabilite-fullscreen-content {
+  width: 98vw;
+  height: 98vh;
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Header Section - Brand Kit: Trustworthy Blue (#2A6484) */
+.comptabilite-header {
+  background: #2A6484;
+  padding: 20px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.calculator-btn {
+  background: #FFFFFF;
+  border: none;
+  color: #2A6484;
+  font-size: 22px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.calculator-btn:hover {
+  background: #F1F1F1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.calculator-btn:active {
+  transform: translateY(0);
+}
+
+.print-btn {
+  background: #FFFFFF;
+  border: none;
+  color: #2A6484;
+  font-size: 22px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.print-btn:hover {
+  background: #F1F1F1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.print-btn:active {
+  transform: translateY(0);
+}
+
+.doctor-name {
+  color: #FFFFFF;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.doctor-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 20px;
+  border-radius: 8px;
+}
+
+.doctor-selector label {
+  color: #FFFFFF;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.doctor-select {
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  font-size: 15px;
+  background: #FFFFFF;
+  color: #202020;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  font-weight: 600;
+  min-width: 180px;
+}
+
+.doctor-select:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.doctor-select:focus {
+  outline: none;
+  border-color: #429898;
+  box-shadow: 0 0 0 3px rgba(66, 152, 152, 0.1);
+}
+
+.date-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 10px 20px;
+  border-radius: 8px;
+}
+
+.date-selector label {
+  color: #FFFFFF;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.date-input {
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  font-size: 15px;
+  background: #FFFFFF;
+  color: #202020;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.date-input:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #429898;
+  box-shadow: 0 0 0 3px rgba(66, 152, 152, 0.1);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.time-period-selector {
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px;
+  border-radius: 8px;
+}
+
+.period-btn {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.period-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
+
+.period-btn.active {
+  background: #FFFFFF;
+  color: #2A6484;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.close-btn {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #FFFFFF;
+  font-size: 22px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.close-btn:active {
+  transform: scale(0.98);
+}
+
+/* Calculator Popup */
+.calculator-popup {
+  position: absolute;
+  top: 90px;
+  left: 32px;
+  z-index: 10000;
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  padding: 0;
+}
+
+/* Main Content Area - Brand Kit: Clean White Background */
+.comptabilite-main {
+  flex: 1;
+  padding: 32px;
+  overflow: auto;
+  background: #F1F1F1;
+}
+
+.error-banner {
+  background: #FEF2F2;
+  color: #DC3545;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border-left: 4px solid #DC3545;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 20px;
+  color: #8A8A8F;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #F1F1F1;
+  border-top: 3px solid #2A6484;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-state p {
+  font-size: 17px;
+  font-weight: 500;
+  color: #8A8A8F;
+}
+
+/* Tables Container */
+.tables-container {
+  display: flex;
+  gap: 32px;
+  height: 100%;
+}
+
+.main-table-section {
+  flex: 1;
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #F1F1F1;
+}
+
+.recap-table-section {
+  width: 400px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #F1F1F1;
+}
+
+.recap-title {
+  background: #2A6484;
+  color: #FFFFFF;
+  padding: 20px 24px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  text-align: center;
+  flex-shrink: 0;
+  letter-spacing: -0.2px;
+}
+
+/* Daily Records Table - Brand Kit Typography and Colors */
+.daily-records-table {
+  width: 100%;
+  border-collapse: collapse;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.daily-records-table thead {
+  background: #F1F1F1;
+  flex-shrink: 0;
+  border-bottom: 2px solid #2A6484;
+}
+
+.daily-records-table thead tr {
+  display: flex;
+  width: 100%;
+}
+
+.daily-records-table th {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #2A6484;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  flex: 1;
+}
+
+.daily-records-table tbody {
+  flex: 1;
+  overflow-y: auto;
+  display: block;
+}
+
+.daily-records-table tbody tr {
+  display: flex;
+  width: 100%;
+  border-bottom: 1px solid #F1F1F1;
+  transition: background-color 0.15s ease;
+}
+
+.daily-records-table tbody tr:hover {
+  background-color: #F9FAFB;
+}
+
+.daily-records-table td {
+  padding: 14px 20px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+}
+
+.daily-records-table tfoot {
+  flex-shrink: 0;
+  background: #F1F1F1;
+  border-top: 2px solid #2A6484;
+}
+
+.daily-records-table tfoot tr {
+  display: flex;
+  width: 100%;
+}
+
+.daily-records-table tfoot td {
+  padding: 20px;
+}
+
+/* Recap Table - Brand Kit Design */
+.recap-table {
+  width: 100%;
+  border-collapse: collapse;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.recap-table thead {
+  background: #F1F1F1;
+  flex-shrink: 0;
+  border-bottom: 2px solid #2A6484;
+}
+
+.recap-table thead tr {
+  display: flex;
+  width: 100%;
+}
+
+.recap-table th {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #2A6484;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+}
+
+.recap-table tbody {
+  flex: 1;
+  overflow-y: auto;
+  display: block;
+}
+
+.recap-table tbody tr {
+  display: flex;
+  width: 100%;
+  border-bottom: 1px solid #F1F1F1;
+  transition: background-color 0.15s ease;
+}
+
+.recap-table tbody tr:hover {
+  background-color: #F9FAFB;
+}
+
+.recap-table td {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+}
+
+.recap-table tfoot {
+  flex-shrink: 0;
+  background: #F1F1F1;
+  border-top: 2px solid #429898;
+}
+
+.recap-table tfoot tr {
+  display: flex;
+  width: 100%;
+}
+
+.recap-table tfoot td {
+  padding: 20px;
+}
+
+/* Cell Types - Brand Kit Colors */
+.time-cell {
+  font-weight: 500;
+  color: #202020;
+  min-width: 90px;
+  font-feature-settings: 'tnum';
+  font-variant-numeric: tabular-nums;
+}
+
+.name-cell {
+  font-weight: 500;
+  color: #202020;
+}
+
+.acte-cell {
+  color: #202020;
+  flex: 2 !important;
+  font-weight: 400;
+}
+
+.montant-cell {
+  font-weight: 600;
+  color: #28A745;
+  text-align: right !important;
+  justify-content: flex-end !important;
+  font-feature-settings: 'tnum';
+  font-variant-numeric: tabular-nums;
+}
+
+.assistant-amount {
+  color: #429898 !important;
+  font-weight: 600;
+}
+
+.assistant-total {
+  color: #429898 !important;
+  font-weight: 700 !important;
+}
+
+.count-cell {
+  text-align: center !important;
+  justify-content: center !important;
+  font-weight: 600;
+  color: #2A6484;
+  flex: 0.8 !important;
+}
+
+.no-data {
+  text-align: center !important;
+  justify-content: center !important;
+  color: #8A8A8F;
+  padding: 48px 20px !important;
+  font-style: italic;
+  font-size: 15px;
+}
+
+/* Summary Footer - Brand Kit Typography */
+.summary-row td {
+  font-size: 17px;
+  color: #202020;
+}
+
+.summary-label {
+  font-weight: 600;
+}
+
+.summary-total {
+  font-size: 20px !important;
+  color: #28A745 !important;
+  font-weight: 700 !important;
+}
+
+.recap-total-row td {
+  font-size: 17px;
+  color: #202020;
+}
+
+.recap-total-label {
+  font-weight: 600;
+  flex: 2 !important;
+}
+
+.recap-total-amount {
+  font-size: 20px !important;
+  color: #28A745 !important;
+  font-weight: 700 !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1400px) {
+  .recap-table-section {
+    width: 350px;
+  }
+  
+  .comptabilite-main {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .tables-container {
+    flex-direction: column;
+  }
+  
+  .recap-table-section {
+    width: 100%;
+    max-height: 400px;
+  }
+  
+  .comptabilite-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .header-left,
+  .header-right {
+    justify-content: center;
+  }
+}
+
+
+
+.error-message {
+  padding: 12px 16px;
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.no-records {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-style: italic;
+}
+
+/* Print Header - Hidden by default, shown only when printing */
+.print-only-header {
+  display: none;
+}
+
+/* Print Styles */
+@media print {
+  /* Hide dashboard elements */
+  .sidebar,
+  .navigation,
+  .dashboard-header,
+  nav,
+  aside {
+    display: none !important;
+  }
+
+  /* Show modal */
+  .modal-overlay-fullscreen {
+    position: static !important;
+    background: white !important;
+    height: auto !important;
+  }
+  
+  .comptabilite-fullscreen-content {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide interactive elements and unwanted sections */
+  .comptabilite-header,
+  .calculator-popup,
+  .recap-table,
+  .section-title {
+    display: none !important;
+  }
+
+  /* Show print header */
+  .print-only-header {
+    display: block !important;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #2A6484;
+  }
+
+  .comptabilite-main {
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  /* Make table print across pages */
+  .daily-records-table {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border: 2px solid #2A6484 !important;
+    max-height: none !important;
+    height: auto !important;
+  }
+
+  .table-header {
+    display: table-header-group !important;
+  }
+
+  .table-row,
+  .total-row,
+  .assistant-total-row {
+    display: table-row !important;
+    page-break-inside: avoid !important;
+  }
+
+  .table-cell {
+    display: table-cell !important;
+  }
+
+  @page {
+    margin: 2cm;
+  }
+}
