@@ -78,7 +78,14 @@
       "dist",
       "dist-electron",
       "node_modules",
-      "package.json"
+      "package.json",
+      "prisma",
+      "prisma.config.ts"
+    ],
+    "asarUnpack": [
+      "node_modules/.prisma/**/*",
+      "node_modules/@prisma/client/**/*",
+      "node_modules/prisma/**/*"
     ],
     "mac": {
       "icon": "resources/icon.icns",
