@@ -1,8 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import path from 'path'
-import { app } from 'electron'
-import fs from 'fs'
 
 // Constants for password hashing
 const SALT_ROUNDS = 10
@@ -11,38 +9,12 @@ const SALT_ROUNDS = 10
 let prisma: PrismaClient | null = null
 
 /**
- * Get database path from config file or use default
- */
-function getDatabasePath(): string {
-  const userDataPath = app.getPath('userData')
-  const configPath = path.join(userDataPath, 'database-config.json')
-  
-  // Check if config file exists
-  if (fs.existsSync(configPath)) {
-    try {
-      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
-      if (config.databasePath) {
-        console.log('📁 Using configured database path:', config.databasePath)
-        return config.databasePath
-      }
-    } catch (error) {
-      console.error('❌ Failed to read database config:', error)
-    }
-  }
-  
-  // Default to local database
-  const defaultPath = path.join(userDataPath, 'thaziri-database.db')
-  console.log('📁 Using default database path:', defaultPath)
-  return defaultPath
-}
-
-/**
  * Get or create the Prisma Client instance
  */
 export function getPrismaClient(): PrismaClient {
   if (!prisma) {
-    // Get database path (configurable for LAN setup)
-    const databasePath = getDatabasePath()
+    // Explicitly set the database URL to handle Electron's working directory
+    const databasePath = path.join(process.cwd(), 'prisma', 'dev.db')
     const databaseUrl = `file:${databasePath}`
     
     prisma = new PrismaClient({

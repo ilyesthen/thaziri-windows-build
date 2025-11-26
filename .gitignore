@@ -40,3 +40,13 @@ export/*.json
 
 # Test data
 *.test.db
+
+# Large XML data files (imports/exports)
+*.xml
+!.github/**/*.xml
+
+# Large database files
+thaziri-database.db
+
+# Export files
+export/
