@@ -1,4 +1,3 @@
-import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import path from 'path'
 import { app } from 'electron'
@@ -7,8 +6,9 @@ import fs from 'fs'
 // Constants for password hashing
 const SALT_ROUNDS = 10
 
-// Singleton instance of Prisma Client
-let prisma: PrismaClient | null = null
+// Dynamically import PrismaClient to handle asar unpacking
+let PrismaClient: any
+let prisma: any | null = null
 
 /**
  * Determine if running in production (packaged) or development
@@ -63,9 +63,43 @@ function getDatabasePath(): string {
 }
 
 /**
+ * Load PrismaClient from the correct location
+ * In production, loads from unpacked asar to avoid module resolution errors
+ */
+function loadPrismaClient() {
+  if (!PrismaClient) {
+    if (isProduction()) {
+      // In production, require from unpacked location
+      const prismaClientPath = getResourcePath('node_modules', '@prisma', 'client')
+      console.log('🔍 Loading PrismaClient from:', prismaClientPath)
+      
+      try {
+        const prismaModule = require(path.join(prismaClientPath, 'index.js'))
+        PrismaClient = prismaModule.PrismaClient
+        console.log('✅ PrismaClient loaded successfully from unpacked location')
+      } catch (error) {
+        console.error('❌ Failed to load PrismaClient from unpacked location:', error)
+        // Fallback to normal import
+        try {
+          PrismaClient = require('@prisma/client').PrismaClient
+          console.log('⚠️ Using fallback PrismaClient import')
+        } catch (fallbackError) {
+          console.error('❌ Fallback import also failed:', fallbackError)
+          throw fallbackError
+        }
+      }
+    } else {
+      // In development, use normal import
+      PrismaClient = require('@prisma/client').PrismaClient
+    }
+  }
+  return PrismaClient
+}
+
+/**
  * Get or create the Prisma Client instance
  */
-export function getPrismaClient(): PrismaClient {
+export function getPrismaClient(): any {
   if (!prisma) {
     const databasePath = getDatabasePath()
     const databaseUrl = `file:${databasePath}`
@@ -114,7 +148,10 @@ export function getPrismaClient(): PrismaClient {
       console.log('   Engine exists:', fs.existsSync(queryEnginePath))
     }
     
-    prisma = new PrismaClient({
+    // Load PrismaClient from correct location
+    const PrismaClientClass = loadPrismaClient()
+    
+    prisma = new PrismaClientClass({
       datasources: {
         db: {
           url: databaseUrl

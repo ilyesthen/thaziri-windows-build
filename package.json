@@ -71,6 +71,7 @@
     "productName": "Thaziri",
     "buildDependenciesFromSource": false,
     "npmRebuild": false,
+    "asar": true,
     "directories": {
       "output": "release/${version}"
     },
