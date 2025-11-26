@@ -16,7 +16,7 @@
     "preview": "vite preview",
     "dist": "npm run build",
     "pack": "electron-builder --dir",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "node -e \"process.env.CI || require('child_process').execSync('electron-builder install-app-deps', {stdio:'inherit'})\""
     "db:import-patients": "tsx scripts/import-patients.ts",
     "db:import-visits": "tsx scripts/import-visit-examinations.ts",
     "db:import-export": "tsx scripts/import-from-export.ts",
