@@ -19,24 +19,33 @@ function isProduction(): boolean {
 
 /**
  * Get the correct path for resources based on environment
+ * Cross-platform compatible (Windows, macOS, Linux)
  */
 function getResourcePath(...paths: string[]): string {
   if (isProduction()) {
     // In production, use app.getAppPath() which points to app.asar
     // For unpacked resources, use process.resourcesPath
-    return path.join(process.resourcesPath, 'app.asar.unpacked', ...paths)
+    const resourcePath = path.join(process.resourcesPath, 'app.asar.unpacked', ...paths)
+    // Normalize path for current platform (handles \ vs /)
+    return path.normalize(resourcePath)
   } else {
     // In development, use process.cwd()
-    return path.join(process.cwd(), ...paths)
+    const devPath = path.join(process.cwd(), ...paths)
+    return path.normalize(devPath)
   }
 }
 
 /**
  * Get the database path
+ * Cross-platform: 
+ * - Windows: C:\Users\[User]\AppData\Roaming\Thaziri\thaziri-database.db
+ * - macOS: ~/Library/Application Support/Thaziri/thaziri-database.db
+ * - Linux: ~/.config/Thaziri/thaziri-database.db
  */
 function getDatabasePath(): string {
   if (isProduction()) {
     // In production, store database in user data directory
+    // app.getPath('userData') is cross-platform
     const userDataPath = app.getPath('userData')
     const dbPath = path.join(userDataPath, 'thaziri-database.db')
     
@@ -46,10 +55,10 @@ function getDatabasePath(): string {
       fs.mkdirSync(dbDir, { recursive: true })
     }
     
-    return dbPath
+    return path.normalize(dbPath)
   } else {
     // In development, use local prisma directory
-    return path.join(process.cwd(), 'prisma', 'dev.db')
+    return path.normalize(path.join(process.cwd(), 'prisma', 'dev.db'))
   }
 }
 
@@ -61,22 +70,48 @@ export function getPrismaClient(): PrismaClient {
     const databasePath = getDatabasePath()
     const databaseUrl = `file:${databasePath}`
     
-    // Set environment variable for Prisma schema location in production
+    // Set environment variable for Prisma query engine location in production
     if (isProduction()) {
       const schemaPath = getResourcePath('prisma', 'schema.prisma')
-      process.env.PRISMA_QUERY_ENGINE_LIBRARY = getResourcePath(
+      
+      // Get the correct query engine binary for this platform
+      let queryEngineName: string
+      if (process.platform === 'win32') {
+        queryEngineName = 'query_engine-windows.dll.node'
+      } else if (process.platform === 'darwin') {
+        queryEngineName = process.arch === 'arm64' 
+          ? 'libquery_engine-darwin-arm64.dylib.node'
+          : 'libquery_engine-darwin.dylib.node'
+      } else {
+        // Linux
+        queryEngineName = 'libquery_engine-debian-openssl-3.0.x.so.node'
+      }
+      
+      const queryEnginePath = getResourcePath(
         'node_modules',
         '.prisma',
         'client',
-        process.platform === 'win32' ? 'query_engine-windows.dll.node' : 
-        process.platform === 'darwin' ? (process.arch === 'arm64' ? 'libquery_engine-darwin-arm64.dylib.node' : 'libquery_engine-darwin.dylib.node') :
-        'libquery_engine-linux.so.node'
+        queryEngineName
       )
       
-      console.log('🔧 Production Prisma paths:')
+      // Verify the query engine file exists
+      if (fs.existsSync(queryEnginePath)) {
+        process.env.PRISMA_QUERY_ENGINE_LIBRARY = queryEnginePath
+        console.log('✅ Prisma query engine found:', queryEnginePath)
+      } else {
+        console.error('❌ Prisma query engine NOT found at:', queryEnginePath)
+        console.error('   Platform:', process.platform)
+        console.error('   Architecture:', process.arch)
+        console.error('   Expected file:', queryEngineName)
+      }
+      
+      console.log('🔧 Production Prisma Configuration:')
+      console.log('   Platform:', process.platform)
+      console.log('   Architecture:', process.arch)
       console.log('   Schema:', schemaPath)
       console.log('   Engine:', process.env.PRISMA_QUERY_ENGINE_LIBRARY)
       console.log('   Database:', databasePath)
+      console.log('   Engine exists:', fs.existsSync(queryEnginePath))
     }
     
     prisma = new PrismaClient({
