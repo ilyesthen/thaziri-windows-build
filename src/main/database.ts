@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import path from 'path'
+import { app } from 'electron'
+import fs from 'fs'
 
 // Constants for password hashing
 const SALT_ROUNDS = 10
@@ -9,22 +11,80 @@ const SALT_ROUNDS = 10
 let prisma: PrismaClient | null = null
 
 /**
+ * Determine if running in production (packaged) or development
+ */
+function isProduction(): boolean {
+  return app.isPackaged
+}
+
+/**
+ * Get the correct path for resources based on environment
+ */
+function getResourcePath(...paths: string[]): string {
+  if (isProduction()) {
+    // In production, use app.getAppPath() which points to app.asar
+    // For unpacked resources, use process.resourcesPath
+    return path.join(process.resourcesPath, 'app.asar.unpacked', ...paths)
+  } else {
+    // In development, use process.cwd()
+    return path.join(process.cwd(), ...paths)
+  }
+}
+
+/**
+ * Get the database path
+ */
+function getDatabasePath(): string {
+  if (isProduction()) {
+    // In production, store database in user data directory
+    const userDataPath = app.getPath('userData')
+    const dbPath = path.join(userDataPath, 'thaziri-database.db')
+    
+    // Create directory if it doesn't exist
+    const dbDir = path.dirname(dbPath)
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true })
+    }
+    
+    return dbPath
+  } else {
+    // In development, use local prisma directory
+    return path.join(process.cwd(), 'prisma', 'dev.db')
+  }
+}
+
+/**
  * Get or create the Prisma Client instance
  */
 export function getPrismaClient(): PrismaClient {
   if (!prisma) {
-    // Explicitly set the database URL to handle Electron's working directory
-    const databasePath = path.join(process.cwd(), 'prisma', 'dev.db')
+    const databasePath = getDatabasePath()
     const databaseUrl = `file:${databasePath}`
     
-    prisma = new PrismaClient({
+    // Get the path to the query engine
+    const queryEnginePath = isProduction()
+      ? getResourcePath('node_modules', '.prisma', 'client')
+      : undefined
+    
+    const config: any = {
       datasources: {
         db: {
           url: databaseUrl
         }
       },
       log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-    })
+    }
+    
+    // Set the query engine library path for production
+    if (queryEnginePath) {
+      config.__internal = {
+        engine: {
+          cwd: queryEnginePath
+        }
+      }
+    }
+    
+    prisma = new PrismaClient(config)
   }
   return prisma
 }

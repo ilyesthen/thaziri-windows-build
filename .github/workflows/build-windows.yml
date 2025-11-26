@@ -52,8 +52,13 @@ jobs:
       - name: Set DATABASE_URL for Prisma
         run: echo "DATABASE_URL=file:./prisma/dev.db" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       
-      - name: Generate Prisma Client
+      - name: Clean Prisma Client
+        run: Remove-Item -Path "node_modules/.prisma" -Recurse -Force -ErrorAction SilentlyContinue
+        
+      - name: Generate Prisma Client with Windows binaries
         run: npx prisma generate
+        env:
+          PRISMA_GENERATE_SKIP_AUTOINSTALL: false
       
       - name: Build Electron app for Windows ${{ matrix.arch }}
         run: npm run build:win-${{ matrix.arch }}
