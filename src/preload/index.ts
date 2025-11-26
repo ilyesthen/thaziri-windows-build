@@ -519,6 +519,19 @@ const electronAPI = {
     delete: (id: number) => ipcRenderer.invoke('ordonnances:delete', id)
   },
 
+  // Setup Wizard API
+  getComputerName: () => ipcRenderer.invoke('setup:getComputerName'),
+  setupDatabase: (config: { mode: 'admin' | 'client', databasePath?: string, shareName?: string }) => 
+    ipcRenderer.invoke('setup:database', config),
+  testDatabaseConnection: (databasePath: string) => 
+    ipcRenderer.invoke('setup:testConnection', databasePath),
+  importDatabase: (sourcePath: string) => 
+    ipcRenderer.invoke('setup:importDatabase', sourcePath),
+  isSetupComplete: () => 
+    ipcRenderer.invoke('setup:isComplete'),
+  selectFile: (options: { filters?: Array<{ name: string, extensions: string[] }> }) => 
+    ipcRenderer.invoke('dialog:selectFile', options),
+
   // Example ping for testing IPC
   ping: () => ipcRenderer.invoke('ping')
 }

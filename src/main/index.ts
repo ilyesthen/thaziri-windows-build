@@ -1426,6 +1426,125 @@ ipcMain.handle('store:set', (_, key: string, value: any) => {
   return { success: true }
 })
 
+// ==================== SETUP WIZARD IPC HANDLERS ====================
+
+ipcMain.handle('setup:getComputerName', async () => {
+  return require('os').hostname()
+})
+
+ipcMain.handle('setup:database', async (_, config: { mode: 'admin' | 'client', databasePath?: string, shareName?: string }) => {
+  try {
+    const userDataPath = app.getPath('userData')
+    const configPath = path.join(userDataPath, 'database-config.json')
+    const setupCompletePath = path.join(userDataPath, 'setup-complete')
+    
+    if (config.mode === 'admin') {
+      // Admin mode: Remove any client configuration
+      if (require('fs').existsSync(configPath)) {
+        require('fs').unlinkSync(configPath)
+      }
+      
+      // Mark setup as complete
+      require('fs').writeFileSync(setupCompletePath, JSON.stringify({
+        mode: 'admin',
+        completedAt: new Date().toISOString(),
+        shareName: config.shareName || 'ThaziriDB'
+      }))
+      
+      return { success: true, mode: 'admin' }
+    } else {
+      // Client mode: Save database path configuration
+      if (!config.databasePath) {
+        return { success: false, error: 'Database path is required for client mode' }
+      }
+      
+      require('fs').writeFileSync(configPath, JSON.stringify({
+        databasePath: config.databasePath
+      }, null, 2))
+      
+      // Mark setup as complete
+      require('fs').writeFileSync(setupCompletePath, JSON.stringify({
+        mode: 'client',
+        completedAt: new Date().toISOString(),
+        databasePath: config.databasePath
+      }))
+      
+      return { success: true, mode: 'client' }
+    }
+  } catch (error: any) {
+    console.error('Setup error:', error)
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('setup:testConnection', async (_, databasePath: string) => {
+  try {
+    const fs = require('fs')
+    
+    // Test if path is accessible
+    if (!fs.existsSync(databasePath)) {
+      return { success: false, error: 'Database file not found at specified path' }
+    }
+    
+    // Test if we can read the file
+    fs.accessSync(databasePath, fs.constants.R_OK | fs.constants.W_OK)
+    
+    return { success: true }
+  } catch (error: any) {
+    console.error('Connection test failed:', error)
+    return { 
+      success: false, 
+      error: error.code === 'ENOENT' ? 'Path not found' : 
+             error.code === 'EACCES' ? 'Permission denied' :
+             error.message 
+    }
+  }
+})
+
+ipcMain.handle('setup:importDatabase', async (_, sourcePath: string) => {
+  try {
+    const fs = require('fs')
+    const userDataPath = app.getPath('userData')
+    const destPath = path.join(userDataPath, 'thaziri-database.db')
+    
+    // Copy database file
+    fs.copyFileSync(sourcePath, destPath)
+    
+    return { success: true }
+  } catch (error: any) {
+    console.error('Database import error:', error)
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('setup:isComplete', async () => {
+  try {
+    const userDataPath = app.getPath('userData')
+    const setupCompletePath = path.join(userDataPath, 'setup-complete')
+    
+    if (require('fs').existsSync(setupCompletePath)) {
+      const setupData = JSON.parse(require('fs').readFileSync(setupCompletePath, 'utf-8'))
+      return { complete: true, ...setupData }
+    }
+    
+    return { complete: false }
+  } catch (error) {
+    return { complete: false }
+  }
+})
+
+ipcMain.handle('dialog:selectFile', async (_, options: any) => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: options.filters || []
+  })
+  
+  if (!result.canceled && result.filePaths.length > 0) {
+    return result.filePaths[0]
+  }
+  return null
+})
+
 // Handle app protocol for macOS
 if (process.platform === 'darwin') {
   app.setAboutPanelOptions({
