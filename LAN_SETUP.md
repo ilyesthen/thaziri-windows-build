@@ -12,39 +12,45 @@ This guide explains how to set up Thaziri with a shared database over LAN, where
 ### 1. Server PC Setup (Admin/Main Database Host)
 
 1. Install Thaziri on the server PC
-2. The database will be created automatically at:
-   - Windows: `C:\Users\[Username]\AppData\Roaming\thaziri\thaziri-database.db`
+2. Launch Thaziri once to create the database automatically at:
+   - Windows: `C:\Users\[Username]\AppData\Roaming\Thaziri\thaziri-database.db`
 
 3. Share the Thaziri data folder:
-   - Right-click the folder: `C:\Users\[Username]\AppData\Roaming\thaziri`
+   - Right-click the folder: `C:\Users\[Username]\AppData\Roaming\Thaziri`
    - Select "Properties" → "Sharing" tab → "Advanced Sharing"
    - Check "Share this folder"
-   - Set permissions: Allow "Full Control" for users who will access it
-   - Note the network path (e.g., `\\SERVER-PC\thaziri`)
+   - Set share name to "ThaziriDB" (or any name you prefer)
+   - Click "Permissions" → Add users → Grant "Full Control"
+   - Note the network path (e.g., `\\ADMIN-PC\ThaziriDB`)
 
 ### 2. Client PC Setup
 
 1. Install Thaziri on each client PC
 
-2. Map the network drive (recommended):
+2. Map the network drive (recommended for better performance):
    - Open File Explorer
    - Click "This PC" → "Map network drive"
    - Choose a drive letter (e.g., Z:)
-   - Enter the folder path: `\\SERVER-PC\thaziri`
+   - Enter the folder path: `\\ADMIN-PC\ThaziriDB`
    - Check "Reconnect at sign-in"
+   - Enter network credentials if prompted
    - Click "Finish"
 
 3. Configure database path:
-   - Navigate to: `C:\Users\[Username]\AppData\Roaming\thaziri`
-   - Create a file named `database-config.json` with this content:
+   - Launch Thaziri once to create the local config folder
+   - Close Thaziri
+   - Navigate to: `C:\Users\[Username]\AppData\Roaming\Thaziri`
+   - Create a new file named `database-config.json` with this content:
    ```json
    {
      "databasePath": "Z:\\thaziri-database.db"
    }
    ```
-   - Replace `Z:` with your mapped drive letter
+   - **Important**: Replace `Z:` with your actual mapped drive letter
+   - Use double backslashes `\\` in the path
 
-4. Start Thaziri - it will now use the shared database!
+4. Start Thaziri - it will now connect to the shared database!
+5. You should see in the console: "📡 Using network database path: Z:\thaziri-database.db"
 
 ## Alternative: UNC Path (Without Mapping)
 

@@ -35,16 +35,34 @@ function getResourcePath(...paths: string[]): string {
 
 /**
  * Get the database path
+ * Supports custom database path for LAN/network database sharing
  * Cross-platform: 
  * - Windows: C:\Users\[User]\AppData\Roaming\Thaziri\thaziri-database.db
  * - macOS: ~/Library/Application Support/Thaziri/thaziri-database.db
  * - Linux: ~/.config/Thaziri/thaziri-database.db
+ * 
+ * For LAN setup, create database-config.json in userData directory:
+ * { "databasePath": "Z:\\shared-database.db" }
  */
 function getDatabasePath(): string {
   if (isProduction()) {
-    // In production, store database in user data directory
-    // app.getPath('userData') is cross-platform
     const userDataPath = app.getPath('userData')
+    const configPath = path.join(userDataPath, 'database-config.json')
+    
+    // Check for custom database configuration (for LAN setup)
+    if (fs.existsSync(configPath)) {
+      try {
+        const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+        if (config.databasePath) {
+          console.log('📡 Using network database path:', config.databasePath)
+          return path.normalize(config.databasePath)
+        }
+      } catch (error) {
+        console.error('⚠️ Failed to read database config:', error)
+      }
+    }
+    
+    // Default: Use local user data directory
     const dbPath = path.join(userDataPath, 'thaziri-database.db')
     
     // Create directory if it doesn't exist
@@ -53,6 +71,7 @@ function getDatabasePath(): string {
       fs.mkdirSync(dbDir, { recursive: true })
     }
     
+    console.log('💾 Using local database path:', dbPath)
     return path.normalize(dbPath)
   } else {
     // In development, use local prisma directory
