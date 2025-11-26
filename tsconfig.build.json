@@ -5,6 +5,11 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "skipLibCheck": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": false,
+    "suppressImplicitAnyIndexErrors": true,
+    "noStrictGenericChecks": true
   }
 }
