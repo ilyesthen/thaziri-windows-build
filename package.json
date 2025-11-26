@@ -111,7 +111,17 @@
             "ia32"
           ]
         }
-      ]
+      ],
+      "requestedExecutionLevel": "asInvoker",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Thaziri",
+      "include": "build/installer.nsh"
     },
     "linux": {
       "icon": "resources/icon.png",

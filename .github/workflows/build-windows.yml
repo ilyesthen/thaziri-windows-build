@@ -9,6 +9,7 @@ on:
 
 jobs:
   build-windows:
+    name: Build for Windows 8.1+ (Modern)
     runs-on: windows-2022
     timeout-minutes: 60
     
@@ -57,4 +58,59 @@ jobs:
         if: always()
         run: |
           echo "Listing all release files:"
+          Get-ChildItem -Path release -Recurse -File | Select-Object FullName
+  
+  build-windows7-32bit:
+    name: Build for Windows 7 32-bit (Legacy)
+    runs-on: windows-2019
+    timeout-minutes: 60
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci --force
+      
+      - name: Downgrade to Electron 22 (Windows 7 compatible)
+        run: npm install --save-dev electron@22.3.27 --legacy-peer-deps
+      
+      - name: Generate Prisma Client
+        run: npx prisma generate --schema=./prisma/schema.prisma
+      
+      - name: Copy Prisma files to @prisma/client
+        run: xcopy /E /I node_modules\.prisma node_modules\@prisma\client\.prisma
+      
+      - name: Build Windows 7 32-bit installer
+        run: npm run prepare:windows && vite build && npx electron-builder --win --ia32
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Rename to indicate Win7 legacy
+        run: |
+          Get-ChildItem -Path release -Recurse -Filter "*.exe" | ForEach-Object {
+            $newName = $_.Name -replace "Setup-", "Setup-Win7-32bit-"
+            if ($newName -ne $_.Name) {
+              Rename-Item -Path $_.FullName -NewName $newName -Force
+            }
+          }
+      
+      - name: Upload Windows 7 32-bit installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows7-32bit-installer
+          path: |
+            release/**/*Win7-32bit*.exe
+          retention-days: 30
+      
+      - name: List Win7 legacy files
+        if: always()
+        run: |
+          echo "Listing Windows 7 legacy files:"
           Get-ChildItem -Path release -Recurse -File | Select-Object FullName
