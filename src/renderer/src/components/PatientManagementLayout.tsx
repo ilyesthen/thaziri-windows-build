@@ -54,6 +54,7 @@ const PatientManagementLayout: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [isSearching, setIsSearching] = useState<boolean>(false)
   const [autocompleteSuggestion, setAutocompleteSuggestion] = useState<string>('')
+  const [hasError, setHasError] = useState<boolean>(false)
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState<number>(1)
@@ -512,9 +513,42 @@ const PatientManagementLayout: React.FC = () => {
       console.error('Error fetching patients:', err)
       setError(err.message || 'Échec du chargement des patients')
       setPatients([])
+      setHasError(true)
     } finally {
       setIsSearching(false)
     }
+  }
+
+  // Error boundary fallback
+  if (hasError) {
+    return (
+      <div style={{ 
+        padding: '40px', 
+        textAlign: 'center',
+        color: '#DC3545',
+        fontFamily: 'Arial, sans-serif'
+      }}>
+        <h2>⚠️ Erreur de chargement</h2>
+        <p>Une erreur s'est produite lors du chargement de l'application.</p>
+        <button 
+          onClick={() => {
+            setHasError(false)
+            window.location.reload()
+          }}
+          style={{
+            padding: '10px 20px',
+            marginTop: '20px',
+            background: '#429898',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer'
+          }}
+        >
+          Recharger l'application
+        </button>
+      </div>
+    )
   }
 
   const handleCreatePatient = () => {
@@ -566,12 +600,42 @@ const PatientManagementLayout: React.FC = () => {
 
   const selectedPatient = patients.find(p => p.id === selectedPatientId)
 
+  // Safety check - prevent white screen if currentUser is not loaded
+  if (!currentUser) {
+    return (
+      <div style={{ 
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#2A6484'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ marginBottom: '20px' }}>⏳ Chargement...</div>
+          <div style={{ fontSize: '14px', color: '#666' }}>
+            Si cela prend trop de temps, veuillez recharger la page.
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="patient-management-layout">
       {/* Sidebar */}
       <aside className="patient-sidebar">
         <div className="sidebar-header">
-          <img src="/thaziri logo" alt="Thaziri Logo" className="sidebar-logo" />
+          <div style={{
+            fontSize: '28px',
+            fontWeight: 'bold',
+            color: '#2A6484',
+            textAlign: 'center',
+            padding: '10px 0',
+            marginBottom: '10px'
+          }}>
+            Thaziri
+          </div>
           {currentUser && (
             <div style={{ 
               marginTop: '10px', 
