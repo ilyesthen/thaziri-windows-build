@@ -139,6 +139,32 @@ export function registerOrdonnanceHandlers() {
     }
   })
   
+  // Update ordonnance
+  ipcMain.handle('ordonnances:update', async (_, id: number, data: any) => {
+    try {
+      const prisma = getPrismaClient()
+      const ordonnance = await prisma.ordonnance.update({
+        where: { id },
+        data: {
+          strait: data.strait,
+          strait1: data.strait1,
+          strait2: data.strait2,
+          strait3: data.strait3,
+          dateOrd: data.dateOrd,
+          actex: data.actex,
+          medecin: data.medecin,
+          age: data.age,
+          seq: data.seq,
+          seqpat: data.seqpat
+        }
+      })
+      return { success: true, data: ordonnance }
+    } catch (error) {
+      console.error('Error updating ordonnance:', error)
+      return { success: false, error: (error as Error).message }
+    }
+  })
+  
   // Delete ordonnance
   ipcMain.handle('ordonnances:delete', async (_, id: number) => {
     try {

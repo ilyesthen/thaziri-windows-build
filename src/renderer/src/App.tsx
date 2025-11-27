@@ -8,6 +8,7 @@ import NurseDashboard from './components/NurseDashboard'
 import PatientDetailsView from './components/PatientDetailsView'
 import NewVisitPage from './components/NewVisitPage'
 import OrdonnancePage from './components/OrdonnancePage'
+import SetupWizard from './components/SetupWizard'
 // import HiIlyesPage from './components/HiIlyesPage' // Kept for reference but not used
 import FloatingAIChat from './components/FloatingAIChat'
 import MessageListener from './components/MessageListener'
@@ -20,6 +21,10 @@ function App() {
   
   // Add hydration state to prevent flash
   const [isHydrated, setIsHydrated] = useState(false)
+  
+  // Setup wizard state
+  const [showSetupWizard, setShowSetupWizard] = useState(false)
+  const [checkingSetup, setCheckingSetup] = useState(true)
 
   useEffect(() => {
     // Wait for Zustand to hydrate from localStorage
@@ -35,8 +40,30 @@ function App() {
     return unsubscribe
   }, [])
 
+  // Check if setup is complete on first load
+  useEffect(() => {
+    const checkSetup = async () => {
+      try {
+        const result = await window.electronAPI.isSetupComplete()
+        if (!result.complete) {
+          setShowSetupWizard(true)
+        }
+      } catch (error) {
+        console.error('Error checking setup:', error)
+      } finally {
+        setCheckingSetup(false)
+      }
+    }
+    
+    checkSetup()
+  }, [])
+
+  const handleSetupComplete = () => {
+    setShowSetupWizard(false)
+  }
+
   // Show loading screen while hydrating to prevent flash
-  if (!isHydrated) {
+  if (!isHydrated || checkingSetup) {
     return (
       <div style={{
         display: 'flex',
@@ -77,6 +104,11 @@ function App() {
         </div>
       </div>
     )
+  }
+
+  // Show setup wizard if setup is not complete
+  if (showSetupWizard) {
+    return <SetupWizard onComplete={handleSetupComplete} />
   }
 
   // Protected route wrapper component

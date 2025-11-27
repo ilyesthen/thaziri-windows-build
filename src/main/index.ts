@@ -885,6 +885,16 @@ ipcMain.handle('db:honoraires:delete', async (_, id: number) => {
   }
 })
 
+ipcMain.handle('db:honoraires:get-for-patient', async (_, patientCode: number) => {
+  try {
+    const result = await db.getHonorairesForPatient(patientCode)
+    return result
+  } catch (error: any) {
+    console.error('Error getting honoraires for patient:', error)
+    return { success: false, error: error.message, honoraires: [] }
+  }
+})
+
 // Visit Examinations IPC Handlers
 ipcMain.handle('db:visit-examinations:get-all', async (_, departmentCode: number) => {
   try {
@@ -1543,6 +1553,55 @@ ipcMain.handle('dialog:selectFile', async (_, options: any) => {
     return result.filePaths[0]
   }
   return null
+})
+
+// Print PDF silently with specific paper size
+ipcMain.handle('print:pdf', async (_, pdfBase64: string, paperSize: 'A4' | 'A5') => {
+  try {
+    console.log(`🖨️ Printing PDF silently with paper size: ${paperSize}`)
+    
+    // Create hidden window for printing
+    const printWindow = new BrowserWindow({
+      show: false,
+      webPreferences: {
+        nodeIntegration: false
+      }
+    })
+    
+    // Convert base64 to data URL
+    const pdfDataUrl = `data:application/pdf;base64,${pdfBase64}`
+    
+    // Load PDF
+    await printWindow.loadURL(pdfDataUrl)
+    
+    // Print settings
+    const printOptions: any = {
+      silent: true, // Print without dialog
+      printBackground: true,
+      color: true,
+      margins: {
+        marginType: 'none' as const
+      },
+      pageSize: paperSize === 'A5' ? { width: 148000, height: 210000 } : 'A4' // A5 in microns or A4
+    }
+    
+    // Print
+    printWindow.webContents.print(printOptions, (success, failureReason) => {
+      if (success) {
+        console.log('✅ Print successful')
+      } else {
+        console.error('❌ Print failed:', failureReason)
+      }
+      
+      // Close print window
+      printWindow.close()
+    })
+    
+    return { success: true }
+  } catch (error: any) {
+    console.error('❌ Print error:', error)
+    return { success: false, error: error.message }
+  }
 })
 
 // Handle app protocol for macOS

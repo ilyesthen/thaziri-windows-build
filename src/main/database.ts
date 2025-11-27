@@ -2906,82 +2906,53 @@ export async function deleteAllPaymentsForPatientDate(
 ): Promise<number> {
   const client = getPrismaClient()
   
-  console.log(`🗑️ Deleting all payments for patient ${patientCode}, date ${visitDate}`)
+  console.log(`\n🗑️ === STARTING PAYMENT DELETION ===`)
+  console.log(`Patient Code: ${patientCode}`)
+  console.log(`Visit Date: ${visitDate}`)
+  console.log(`Deleted By: ${deletedBy}`)
   
-  // Try multiple date format conversions to match how honoraires might be stored
-  const dateFormats: string[] = []
+  // STEP 1: Find all honoraires for this patient on this date
+  // Honoraires are stored in DD/MM/YYYY format, so convert YYYY-MM-DD
+  const [year, month, day] = visitDate.split('-')
+  const honoraireDate = `${day}/${month}/${year}`
   
-  // Convert date format from YYYY-MM-DD to DD/MM/YYYY for Honoraire table
-  if (visitDate.includes('-')) {
-    const [year, month, day] = visitDate.split('-')
-    dateFormats.push(`${day}/${month}/${year}`) // DD/MM/YYYY
-    dateFormats.push(`${parseInt(day, 10)}/${parseInt(month, 10)}/${year}`) // D/M/YYYY (without leading zeros)
-    dateFormats.push(`${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`) // DD/MM/YYYY (with padding)
-  } else {
-    dateFormats.push(visitDate) // Use as-is if not in expected format
-  }
+  console.log(`\n📊 Looking for honoraires with date: ${honoraireDate}`)
   
-  console.log(`📊 Trying date formats: ${dateFormats.join(', ')} for patient code: ${patientCode}`)
-  
-  // Try to find honoraires with any of the date formats
-  let totalHonorairesDeleted = 0
-  
-  for (const dateFormat of dateFormats) {
-    console.log(`🔍 Looking for honoraires with date: ${dateFormat}`)
-    
-    // First check what honoraires exist
-    const existingHonoraires = await client.honoraire.findMany({
-      where: {
-        patientCode: patientCode,
-        date: dateFormat
-      }
-    })
-    
-    if (existingHonoraires.length > 0) {
-      console.log(`📊 Found ${existingHonoraires.length} honoraire records with date ${dateFormat}:`)
-      existingHonoraires.forEach(h => {
-        console.log(`  - ID: ${h.id}, Patient: ${h.patientCode}, Date: ${h.date}, Act: ${h.actePratique}, Amount: ${h.montant}`)
-      })
-      
-      // Delete the honoraires
-      const deleteResult = await client.honoraire.deleteMany({
-        where: {
-          patientCode: patientCode,
-          date: dateFormat
-        }
-      })
-      
-      console.log(`✅ Deleted ${deleteResult.count} honoraires with date format ${dateFormat}`)
-      totalHonorairesDeleted += deleteResult.count
-    }
-  }
-  
-  // Also try to find by looking at all honoraires for this patient and checking dates
-  const allPatientHonoraires = await client.honoraire.findMany({
+  const honorairesToDelete = await client.honoraire.findMany({
     where: {
-      patientCode: patientCode
+      patientCode: patientCode,
+      date: honoraireDate
     }
   })
   
-  console.log(`📊 Total honoraires for patient ${patientCode}: ${allPatientHonoraires.length}`)
-  if (allPatientHonoraires.length > 0) {
-    console.log(`  Sample dates: ${allPatientHonoraires.slice(0, 3).map(h => h.date).join(', ')}`)
-  }
+  console.log(`Found ${honorairesToDelete.length} honoraire(s) to delete:`)
+  honorairesToDelete.forEach(h => {
+    console.log(`  - ${h.actePratique}: ${h.montant} DA (Time: ${h.time})`)
+  })
   
-  // Get all payments to be deleted for logging
+  // STEP 2: Delete all honoraires
+  const honorairesDeleted = await client.honoraire.deleteMany({
+    where: {
+      patientCode: patientCode,
+      date: honoraireDate
+    }
+  })
+  
+  console.log(`✅ Deleted ${honorairesDeleted.count} honoraire(s) from Comptabilité`)
+  
+  // STEP 3: Find payment validations to delete
   const paymentsToDelete = await client.paymentValidation.findMany({
     where: {
       patientCode: patientCode,
       visitDate: visitDate,
-      status: { not: 'deleted' } // Only delete non-deleted payments
+      status: { not: 'deleted' }
     }
   })
   
-  console.log(`📊 Found ${paymentsToDelete.length} payment validations to mark as deleted`)
-  console.log(`✅ Total honoraires deleted from Comptabilité du Jour: ${totalHonorairesDeleted}`)
+  console.log(`\n💳 Found ${paymentsToDelete.length} payment validation(s) to delete`)
   
-  // Mark all payments as deleted
-  const updateResult = await client.paymentValidation.updateMany({
+  // STEP 4: Mark payments as deleted
+  const paymentsDeleted = await client.paymentValidation.updateMany({
     where: {
       patientCode: patientCode,
       visitDate: visitDate,
@@ -2992,7 +2963,9 @@ export async function deleteAllPaymentsForPatientDate(
     }
   })
   
-  // Create log entries for each deleted payment
+  console.log(`✅ Marked ${paymentsDeleted.count} payment(s) as deleted`)
+  
+  // STEP 5: Create audit logs
   for (const payment of paymentsToDelete) {
     await client.paymentLog.create({
       data: {
@@ -3005,14 +2978,41 @@ export async function deleteAllPaymentsForPatientDate(
           reason: reason,
           patientCode: patientCode,
           visitDate: visitDate,
-          allPaymentsDeleted: true,
-          honorairesDeleted: totalHonorairesDeleted
+          honorairesDeleted: honorairesDeleted.count
         })
       }
     })
   }
   
-  console.log(`✅ Deleted ${updateResult.count} payments for patient ${patientCode}`)
+  console.log(`✅ Created ${paymentsToDelete.length} audit log(s)`)
+  console.log(`\n🎉 === DELETION COMPLETE ===`)
+  console.log(`Total items deleted: ${honorairesDeleted.count + paymentsDeleted.count}\n`)
   
-  return updateResult.count
+  return paymentsDeleted.count
+}
+
+/**
+ * Get all honoraires (payment history) for a specific patient
+ * This shows ALL payments from Comptabilité du Jour for this patient
+ */
+export async function getHonorairesForPatient(patientCode: number): Promise<any> {
+  const client = getPrismaClient()
+  
+  try {
+    const honoraires = await client.honoraire.findMany({
+      where: {
+        patientCode: patientCode
+      },
+      orderBy: {
+        id: 'desc' // Most recent first
+      }
+    })
+    
+    console.log(`📊 Found ${honoraires.length} honoraire(s) for patient ${patientCode}`)
+    
+    return { success: true, honoraires }
+  } catch (error: any) {
+    console.error('Error getting honoraires for patient:', error)
+    return { success: false, error: error.message, honoraires: [] }
+  }
 }

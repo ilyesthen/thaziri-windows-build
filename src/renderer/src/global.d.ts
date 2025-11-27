@@ -133,6 +133,7 @@ interface ElectronAPI {
       getWithPatients: (date: string, medecin?: string) => Promise<{ success: boolean; records?: any[]; error?: string }>
       // Patient visit history
       getPatientVisits: (departmentCode: number) => Promise<{ success: boolean; visits?: any[]; error?: string }>
+      getForPatient: (patientCode: number) => Promise<{ success: boolean; honoraires?: any[]; error?: string }>
     }
     
     visitExaminations: {
@@ -256,6 +257,7 @@ interface ElectronAPI {
   honoraires: {
     getByDate: (date: string, medecin?: string) => Promise<{ success: boolean; honoraires?: any[]; error?: string }>
     getWithPatients: (date: string, medecin?: string) => Promise<{ success: boolean; records?: any[]; error?: string }>
+    getForPatient: (patientCode: number) => Promise<{ success: boolean; honoraires?: any[]; error?: string }>
   }
   
   payments: {
@@ -299,6 +301,26 @@ interface ElectronAPI {
       deletedByRole: string,
       reason: string
     ) => Promise<{ success: boolean; error?: string }>
+    deleteAllForPatientDate: (
+      patientCode: number,
+      visitDate: string,
+      deletedBy: string,
+      deletedByUserId: number,
+      deletedByRole: string,
+      reason: string
+    ) => Promise<{ success: boolean; deletedCount?: number; error?: string }>
+    linkToVisit: (
+      patientCode: number,
+      visitDate: string,
+      visitId: number
+    ) => Promise<{ success: boolean; error?: string }>
+    checkValidation: (
+      patientCode: number,
+      visitDate: string
+    ) => Promise<{ success: boolean; validated?: boolean; error?: string }>
+    getAllByPatient: (
+      patientCode: number
+    ) => Promise<{ success: boolean; payments?: any[]; error?: string }>
   }
   
   store: {
@@ -321,7 +343,16 @@ interface ElectronAPI {
     getByPatient: (patientCode: number) => Promise<{ success: boolean; data?: any[]; error?: string }>
     countByPatient: (patientCode: number) => Promise<{ success: boolean; data?: number; error?: string }>
     create: (data: any) => Promise<{ success: boolean; data?: any; error?: string }>
+    update: (id: number, data: any) => Promise<{ success: boolean; data?: any; error?: string }>
     delete: (id: number) => Promise<{ success: boolean; error?: string }>
+  }
+
+  printPDF: (pdfBase64: string, paperSize: 'A4' | 'A5') => Promise<{ success: boolean; error?: string }>
+
+  comptesRendus: {
+    getAll: () => Promise<{ success: boolean; data?: any[]; error?: string }>
+    search: (searchTerm: string) => Promise<{ success: boolean; data?: any[]; error?: string }>
+    getByCode: (codeCompte: string) => Promise<{ success: boolean; data?: any; error?: string }>
   }
   
   queue: {

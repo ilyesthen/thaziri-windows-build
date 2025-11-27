@@ -103,7 +103,7 @@ const GlassesPrescriptionModal: React.FC<GlassesPrescriptionModalProps> = ({
     }
   }, [visionData])
 
-  const generatePDF = async (type: 'distance' | 'near' | 'both'): Promise<{ url: string; fileName: string } | null> => {
+  const generatePDF = async (type: 'distance' | 'near' | 'both'): Promise<{ url: string; fileName: string; pdfBytes: Uint8Array } | null> => {
     try {
       const date = new Date().toLocaleDateString('fr-FR')
       const patientCodeValue = patientCode || '000000'
@@ -421,7 +421,7 @@ const GlassesPrescriptionModal: React.FC<GlassesPrescriptionModalProps> = ({
       const typeStr = type === 'distance' ? 'Loin' : type === 'near' ? 'Pres' : 'Complet'
       const fileName = `Prescription_Lunettes_${patientName.replace(/\s+/g, '_')}_${typeStr}_${new Date().getTime()}.pdf`
 
-      return { url, fileName }
+      return { url, fileName, pdfBytes }
     } catch (error) {
       console.error('Error generating PDF:', error)
       alert(`Erreur lors de la génération du PDF: ${error instanceof Error ? error.message : String(error)}`)
@@ -433,56 +433,17 @@ const GlassesPrescriptionModal: React.FC<GlassesPrescriptionModalProps> = ({
     const pdfData = await generatePDF(type)
     if (!pdfData) return
 
-    // Create a hidden iframe for direct printing with A5 page size
-    const iframe = document.createElement('iframe')
-    iframe.style.position = 'fixed'
-    iframe.style.width = '0'
-    iframe.style.height = '0'
-    iframe.style.border = 'none'
-    iframe.style.left = '-9999px'
-    iframe.style.top = '-9999px'
-
-    document.body.appendChild(iframe)
-
-    iframe.onload = () => {
-      setTimeout(() => {
-        try {
-          // Add A5 page size CSS to iframe
-          const iframeDoc = iframe.contentWindow?.document
-          if (iframeDoc) {
-            const style = iframeDoc.createElement('style')
-            style.textContent = `
-              @page {
-                size: A5;
-                margin: 0;
-              }
-              @media print {
-                body, html {
-                  width: 148mm;
-                  height: 210mm;
-                }
-              }
-            `
-            iframeDoc.head.appendChild(style)
-          }
-          
-          iframe.contentWindow?.focus()
-          iframe.contentWindow?.print()
-
-          setTimeout(() => {
-            document.body.removeChild(iframe)
-            URL.revokeObjectURL(pdfData.url)
-          }, 1000)
-        } catch (error) {
-          console.error('Print error:', error)
-          window.print()
-          document.body.removeChild(iframe)
-          URL.revokeObjectURL(pdfData.url)
-        }
-      }, 500)
+    // Print silently with A5 paper size (NO DIALOG!)
+    try {
+      const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfData.pdfBytes)))
+      
+      console.log(`🖨️ Printing glasses prescription (${type}) silently with A5...`)
+      await window.electronAPI.printPDF(pdfBase64, 'A5')
+      console.log('✅ Glasses prescription printed successfully')
+    } catch (error) {
+      console.error('❌ Print error:', error)
+      alert('❌ Erreur d\'impression')
     }
-
-    iframe.src = pdfData.url
   }
 
   const handleDownload = async (type: 'distance' | 'near' | 'both') => {

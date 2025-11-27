@@ -91,9 +91,12 @@ const PatientManagementLayout: React.FC = () => {
   
   // Notification store
   const { 
-    dilatationNotifications, 
+    dilatationNotifications,
+    viewedDilatationCounts,
     hasUnreadMessages,
     hasUnreadPayments,
+    viewedMessageCount,
+    viewedPaymentCount,
     clearDilatationNotification,
     setUnreadMessages,
     setUnreadPayments
@@ -147,19 +150,19 @@ const PatientManagementLayout: React.FC = () => {
     return () => stopLoopingSound()
   }, [hasUnreadMessages, dilatationNotifications, hasUnreadPayments, currentUser])
   
-  // Track new messages for notification
+  // Track new messages for notification - only if count exceeds viewed count
   useEffect(() => {
-    if (newMessages.length > 0) {
+    if (newMessages.length > 0 && newMessages.length > viewedMessageCount) {
       setUnreadMessages(true)
     }
-  }, [newMessages])
+  }, [newMessages, viewedMessageCount])
   
-  // Track new payments for notification  
+  // Track new payments for notification - only if count exceeds viewed count
   useEffect(() => {
-    if (newPayments.length > 0 && currentUser?.role === 'nurse') {
+    if (newPayments.length > 0 && newPayments.length > viewedPaymentCount && currentUser?.role === 'nurse') {
       setUnreadPayments(true)
     }
-  }, [newPayments, currentUser])
+  }, [newPayments, viewedPaymentCount, currentUser])
   
   // Track new dilatation patients and update notification counts
   const [prevDilatationCounts, setPrevDilatationCounts] = useState<{[key: number]: number}>({ 1: 0, 2: 0, 3: 0 })
@@ -170,10 +173,13 @@ const PatientManagementLayout: React.FC = () => {
       [1, 2, 3].forEach((roomId) => {
         const currentCount = roomQueues[roomId]?.fromDoctor?.length || 0
         const prevCount = prevDilatationCounts[roomId] || 0
+        const viewedCount = viewedDilatationCounts[roomId] || 0
         
-        if (currentCount > prevCount) {
+        // Only notify if count exceeds BOTH previous count AND viewed count
+        // This prevents re-notifications after user has dismissed/viewed the list
+        if (currentCount > prevCount && currentCount > viewedCount) {
           // New dilatation patient(s) detected
-          const newPatients = currentCount - prevCount
+          const newPatients = currentCount - Math.max(prevCount, viewedCount)
           for (let i = 0; i < newPatients; i++) {
             playNotificationSound()
           }
@@ -189,7 +195,7 @@ const PatientManagementLayout: React.FC = () => {
         3: roomQueues[3]?.fromDoctor?.length || 0
       })
     }
-  }, [roomQueues, currentUser])
+  }, [roomQueues, currentUser, viewedDilatationCounts])
 
   // Function to fetch room queue data for nurses and doctors
   const fetchRoomQueues = async () => {
@@ -673,7 +679,7 @@ const PatientManagementLayout: React.FC = () => {
             className="action-btn-compact received-btn"
             onClick={() => {
               setIsReceivedMessagesOpen(true)
-              setUnreadMessages(false)
+              setUnreadMessages(false, newMessages.length)
             }}
             title="Messages reçus"
             style={{ position: 'relative' }}
@@ -736,7 +742,7 @@ const PatientManagementLayout: React.FC = () => {
               className="action-btn-compact notification-btn"
               onClick={() => {
                 setIsPaymentNotificationOpen(true)
-                setUnreadPayments(false)
+                setUnreadPayments(false, newPayments.length)
               }}
               title="Notifications de paiement"
               style={{ background: '#429898', position: 'relative' }}
@@ -832,7 +838,7 @@ const PatientManagementLayout: React.FC = () => {
                 </div>
                 <div className="patient-list-section" onClick={() => {
                   if (roomQueues[1].fromDoctor.length > 0) {
-                    clearDilatationNotification(1)
+                    clearDilatationNotification(1, roomQueues[1].fromDoctor.length)
                     setSelectedRoomQueue(1)
                     setSelectedListFilter('fromDoctor')
                     setIsRoomQueueModalOpen(true)
@@ -950,7 +956,7 @@ const PatientManagementLayout: React.FC = () => {
                 </div>
                 <div className="patient-list-section" onClick={() => {
                   if (roomQueues[2].fromDoctor.length > 0) {
-                    clearDilatationNotification(2)
+                    clearDilatationNotification(2, roomQueues[2].fromDoctor.length)
                     setSelectedRoomQueue(2)
                     setSelectedListFilter('fromDoctor')
                     setIsRoomQueueModalOpen(true)
@@ -1068,7 +1074,7 @@ const PatientManagementLayout: React.FC = () => {
                 </div>
                 <div className="patient-list-section" onClick={() => {
                   if (roomQueues[3].fromDoctor.length > 0) {
-                    clearDilatationNotification(3)
+                    clearDilatationNotification(3, roomQueues[3].fromDoctor.length)
                     setSelectedRoomQueue(3)
                     setSelectedListFilter('fromDoctor')
                     setIsRoomQueueModalOpen(true)

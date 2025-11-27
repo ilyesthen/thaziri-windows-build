@@ -59,6 +59,7 @@
     "canvas": "^3.2.0",
     "electron-store": "^11.0.2",
     "jsbarcode": "^3.12.1",
+    "lucide-react": "^0.263.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.394",
     "prisma": "^6.18.0",

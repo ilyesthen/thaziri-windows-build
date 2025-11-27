@@ -34,6 +34,7 @@ interface Patient {
   departmentCode?: number
   firstName: string
   lastName: string
+  fullName?: string
   age?: number
 }
 
@@ -588,8 +589,8 @@ const NewVisitPage: React.FC = () => {
   const checkPaymentValidation = async () => {
     try {
       // Check if payment exists for this patient and date
-      const paymentCheck = await (window.electronAPI as any)?.payments?.checkValidation?.(
-        patient?.departmentCode || '',
+      const paymentCheck = await window.electronAPI.payments.checkValidation(
+        patient?.departmentCode || 0,
         visitDate
       )
       return paymentCheck?.validated || false
@@ -629,25 +630,8 @@ const NewVisitPage: React.FC = () => {
   }
 
   // Handle validate payment button click - user explicitly wants to validate payment
-  const handleValidatePaymentClick = async () => {
-    // If visit isn't saved yet, save it first
-    if (!hasSavedOnce && !originalVisitId) {
-      const result = await actualSaveVisit()
-      if (result?.success) {
-        setHasUnsavedChanges(false)
-        setHasSavedOnce(true)
-        // Update originalVisitId if visit was just created
-        if (result.createdVisitId) {
-          setOriginalVisitId(result.createdVisitId)
-        }
-      } else {
-        alert('❌ Erreur lors de la sauvegarde de la visite')
-        return
-      }
-    }
-    
-    // Visit already saved, just show the payment modal
-    // Don't use wrapper since user explicitly clicked payment button
+  const handleValidatePaymentClick = () => {
+    // ONLY show payment modal - don't save visit, don't do anything else
     setShowPaymentModal(true)
   }
 
@@ -705,42 +689,45 @@ const NewVisitPage: React.FC = () => {
   }
 
   const handleDeletePayment = async () => {
-    if (!patient?.departmentCode) {
+    if (patient?.departmentCode === null || patient?.departmentCode === undefined) {
       alert('❌ Erreur: Code patient introuvable')
       return
     }
 
-    if (!window.confirm('⚠️ Êtes-vous sûr de vouloir supprimer TOUS les paiements de ce patient pour cette date ?\n\nCette action supprimera tous les paiements validés pour ce patient le ' + visitDate)) {
+    // ALWAYS delete payments from TODAY, not from the visit date
+    const todayDate = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+    
+    console.log('🗑️ Deleting TODAY\'s payments')
+    console.log('  - Patient:', patient.firstName, patient.lastName)
+    console.log('  - Patient Code:', patient.departmentCode)
+    console.log('  - TODAY\'s Date:', todayDate)
+    console.log('  - Visit Date (NOT used):', visitDate)
+
+    if (!window.confirm('⚠️ Êtes-vous sûr de vouloir supprimer TOUS les paiements de ce patient pour AUJOURD\'HUI ?\n\nPatient: ' + patient.firstName + ' ' + patient.lastName + '\nDate: ' + todayDate)) {
       return
     }
 
-    const reason = window.prompt('Raison de la suppression de tous les paiements:')
-    if (!reason) return
-
     try {
-      // Use the same date format as when creating payments (YYYY-MM-DD)
-      // visitDate is already in the correct format
-      
-      // TODO: Fix type issue with deleteAllForPatientDate
-      // @ts-ignore - method exists but TypeScript doesn't recognize it
       const result = await window.electronAPI.payments.deleteAllForPatientDate(
         patient.departmentCode,
-        visitDate,  // Use visitDate directly without conversion
+        todayDate, // Use TODAY's date, not visit date
         user?.name || 'Inconnu',
         user?.id || 0,
         user?.role || 'unknown',
-        reason
+        'Suppression manuelle'
       )
+
+      console.log('🗑️ Delete result:', result)
 
       if (result?.success) {
         setExistingPaymentId(null)
-        alert(`✅ ${result.deletedCount} paiement(s) supprimé(s) avec succès.\nL'administrateur a été notifié.`)
-        // After deletion, prompt to validate a new payment
-        setShowPaymentModal(true)
+        alert(`✅ ${result.deletedCount} paiement(s) supprimé(s) avec succès pour aujourd'hui!`)
       } else {
+        console.error('❌ Delete failed:', result)
         alert(`❌ Erreur: ${result?.error || 'Erreur inconnue'}`)
       }
     } catch (error: any) {
+      console.error('❌ Delete exception:', error)
       alert(`❌ Erreur: ${error.message || 'Erreur inconnue'}`)
     }
   }
@@ -1409,11 +1396,9 @@ const NewVisitPage: React.FC = () => {
     try {
       setLoading(true)
 
-      // IMPORTANT: Payment is SEPARATE from visit
-      // Don't link to visitId - only use patient code + date
-      // This way payments survive even if visit is deleted
+      console.log('💳 Validating payment - saving to database...')
 
-      // Create payment validation with honoraires
+      // Create payment validation and save to honoraires table
       const paymentResult = await window.electronAPI.payments.create({
         patientCode: patient.departmentCode,
         patientName: `${patient.firstName} ${patient.lastName}`.trim(),
@@ -1428,33 +1413,20 @@ const NewVisitPage: React.FC = () => {
 
       if (paymentResult?.success) {
         setExistingPaymentId(paymentResult.payment?.id)
-        // Mark payment as validated for this session
         setSessionPaymentValidated(true)
-        // Simple confirmation without blocking alert
-        console.log(`✅ Paiement validé: ${totalAmount} DA`)
+        console.log(`✅ Payment saved: ${totalAmount} DA`)
+        alert(`✅ Paiement validé avec succès: ${totalAmount} DA`)
       } else {
-        console.error('Payment validation failed:', paymentResult?.error)
+        console.error('❌ Payment validation failed:', paymentResult?.error)
+        alert(`❌ Erreur: ${paymentResult?.error || 'Erreur de validation'}`)
       }
       
-      // Close modal and reset state
+      // Close modal and stop - that's it!
       setLoading(false)
       setShowPaymentModal(false)
       
-      // Execute any pending action (for back button navigation, etc.)
-      // NOTE: This should NOT trigger save - pendingAction is only for navigation
-      if (pendingAction) {
-        pendingAction()
-        setPendingAction(null)
-      }
-      
-      // If we were trying to navigate (from back button), do it now
-      if (wantsToNavigate) {
-        setWantsToNavigate(false)
-        navigate(`/patient/${patientId}`)
-      }
-      
     } catch (error: any) {
-      console.error('Error in payment validation flow:', error)
+      console.error('❌ Error validating payment:', error)
       alert(`❌ Erreur: ${error.message || 'Erreur inconnue'}`)
       setLoading(false)
       setShowPaymentModal(false)

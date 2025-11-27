@@ -1298,7 +1298,7 @@ const OrdonnancePage: React.FC = () => {
 
       const fileName = `CompteRendu_${lastName}_${new Date().getTime()}.pdf`;
 
-      return { url, fileName };
+      return { url, fileName, pdfBytes }; // Also return raw bytes for silent printing
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert(`Erreur lors de la génération du PDF: ${error instanceof Error ? error.message : String(error)}`);
@@ -1307,40 +1307,46 @@ const OrdonnancePage: React.FC = () => {
   };
 
   const handlePrintComptesRendu = async () => {
+    const currentCR = comptesRendusActs[currentComptesRendusIndex];
+    
+    // STEP 1: SAVE FIRST - before anything else (even if print is cancelled, data is saved!)
+    if (currentCR) {
+      try {
+        console.log('💾 Saving compte rendu to database...');
+        await window.electronAPI.ordonnances.update(currentCR.id, {
+          strait: comptesRendusText || '',
+          dateOrd: selectedDate,
+          actex: 'COMPTE RENDU MEDICAL',
+          medecin: doctorName
+        });
+        console.log('✅ Compte Rendu saved successfully');
+        
+        // Update local state to match saved content
+        setComptesRendusActs(prev => prev.map(act => 
+          act.id === currentCR.id ? { ...act, content: comptesRendusText } : act
+        ));
+      } catch (error) {
+        console.error('❌ Error saving compte rendu:', error);
+        alert('❌ Erreur lors de la sauvegarde');
+        return;
+      }
+    }
+
+    // STEP 2: Generate PDF and print silently with A4 paper size (different from A5!)
     const pdfData = await generateComptesRenduPDF();
     if (!pdfData) return;
 
-    // Create a hidden iframe for direct printing
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = 'none';
-    iframe.style.left = '-9999px';
-    iframe.style.top = '-9999px';
-
-    document.body.appendChild(iframe);
-
-    iframe.onload = () => {
-      setTimeout(() => {
-        try {
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-
-          setTimeout(() => {
-            document.body.removeChild(iframe);
-            URL.revokeObjectURL(pdfData.url);
-          }, 1000);
-        } catch (error) {
-          console.error('Print error:', error);
-          window.print();
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(pdfData.url);
-        }
-      }, 500);
-    };
-
-    iframe.src = pdfData.url;
+    // Convert PDF to base64 and print silently (NO DIALOG - A4 paper!)
+    try {
+      const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfData.pdfBytes)));
+      
+      console.log('🖨️ Printing compte rendu silently with A4...');
+      await window.electronAPI.printPDF(pdfBase64, 'A4');
+      console.log('✅ Compte Rendu printed successfully');
+    } catch (error) {
+      console.error('❌ Print error:', error);
+      alert('❌ Erreur d\'impression');
+    }
   };
 
   const handleDownloadComptesRendu = async () => {
@@ -1709,7 +1715,7 @@ const OrdonnancePage: React.FC = () => {
 
       const fileName = `Ordonnance_${nameToUse}_${new Date().getTime()}.pdf`;
 
-      return { url, fileName };
+      return { url, fileName, pdfBytes }; // Also return raw bytes for silent printing
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert(`Erreur lors de la génération du PDF: ${error instanceof Error ? error.message : String(error)}`);
@@ -1718,59 +1724,46 @@ const OrdonnancePage: React.FC = () => {
   };
 
   const handlePrint = async () => {
+    const currentOrd = ordonnances[currentOrdonnanceIndex];
+    
+    // STEP 1: SAVE FIRST - before anything else (even if print is cancelled, data is saved!)
+    if (currentOrd) {
+      try {
+        console.log('💾 Saving prescription to database...');
+        await window.electronAPI.ordonnances.update(currentOrd.id, {
+          strait: prescriptionText || '',
+          dateOrd: selectedDate,
+          actex: selectedActe,
+          medecin: doctorName
+        });
+        console.log('✅ Prescription saved successfully');
+        
+        // Update local state to match saved content
+        setOrdonnances(prev => prev.map(o => 
+          o.id === currentOrd.id ? { ...o, content: prescriptionText } : o
+        ));
+      } catch (error) {
+        console.error('❌ Error saving prescription:', error);
+        alert('❌ Erreur lors de la sauvegarde');
+        return;
+      }
+    }
+
+    // STEP 2: Generate PDF and print silently with A5 paper size
     const pdfData = await generatePrescriptionPDF();
     if (!pdfData) return;
 
-    // Create a hidden iframe for direct printing with A5 page size
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = 'none';
-    iframe.style.left = '-9999px';
-    iframe.style.top = '-9999px';
-
-    document.body.appendChild(iframe);
-
-    iframe.onload = () => {
-      setTimeout(() => {
-        try {
-          // Add A5 page size CSS to iframe
-          const iframeDoc = iframe.contentWindow?.document;
-          if (iframeDoc) {
-            const style = iframeDoc.createElement('style');
-            style.textContent = `
-              @page {
-                size: A5;
-                margin: 0;
-              }
-              @media print {
-                body, html {
-                  width: 148mm;
-                  height: 210mm;
-                }
-              }
-            `;
-            iframeDoc.head.appendChild(style);
-          }
-          
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-
-          setTimeout(() => {
-            document.body.removeChild(iframe);
-            URL.revokeObjectURL(pdfData.url);
-          }, 1000);
-        } catch (error) {
-          console.error('Print error:', error);
-          window.print();
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(pdfData.url);
-        }
-      }, 500);
-    };
-
-    iframe.src = pdfData.url;
+    // Convert PDF to base64 and print silently (NO DIALOG - A5 paper!)
+    try {
+      const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfData.pdfBytes)));
+      
+      console.log('🖨️ Printing prescription silently with A5...');
+      await window.electronAPI.printPDF(pdfBase64, 'A5');
+      console.log('✅ Prescription printed successfully');
+    } catch (error) {
+      console.error('❌ Print error:', error);
+      alert('❌ Erreur d\'impression');
+    }
   };
 
   const handleDownloadPrescription = async () => {
@@ -2020,7 +2013,7 @@ const OrdonnancePage: React.FC = () => {
 
       const fileName = `Bilan_${lastName}_${bilanActe}_${new Date().getTime()}.pdf`;
 
-      return { url, fileName };
+      return { url, fileName, pdfBytes }; // Also return raw bytes for silent printing
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert(`Erreur lors de la génération du PDF: ${error instanceof Error ? error.message : String(error)}`);
@@ -2029,59 +2022,46 @@ const OrdonnancePage: React.FC = () => {
   };
 
   const handlePrintBilan = async () => {
+    const currentAct = bilanActs[currentBilanIndex];
+    
+    // STEP 1: SAVE FIRST - before anything else (even if print is cancelled, data is saved!)
+    if (currentAct) {
+      try {
+        console.log('💾 Saving bilan to database...');
+        await window.electronAPI.ordonnances.update(currentAct.id, {
+          strait: bilanText || '',
+          dateOrd: selectedDate,
+          actex: 'BILAN',
+          medecin: doctorName
+        });
+        console.log('✅ Bilan saved successfully');
+        
+        // Update local state to match saved content
+        setBilanActs(prev => prev.map(act => 
+          act.id === currentAct.id ? { ...act, content: bilanText } : act
+        ));
+      } catch (error) {
+        console.error('❌ Error saving bilan:', error);
+        alert('❌ Erreur lors de la sauvegarde');
+        return;
+      }
+    }
+
+    // STEP 2: Generate PDF and print silently with A5 paper size
     const pdfData = await generateBilanPDF();
     if (!pdfData) return;
 
-    // Create a hidden iframe for direct printing with A5 page size
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = 'none';
-    iframe.style.left = '-9999px';
-    iframe.style.top = '-9999px';
-
-    document.body.appendChild(iframe);
-
-    iframe.onload = () => {
-      setTimeout(() => {
-        try {
-          // Add A5 page size CSS to iframe
-          const iframeDoc = iframe.contentWindow?.document;
-          if (iframeDoc) {
-            const style = iframeDoc.createElement('style');
-            style.textContent = `
-              @page {
-                size: A5;
-                margin: 0;
-              }
-              @media print {
-                body, html {
-                  width: 148mm;
-                  height: 210mm;
-                }
-              }
-            `;
-            iframeDoc.head.appendChild(style);
-          }
-          
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-
-          setTimeout(() => {
-            document.body.removeChild(iframe);
-            URL.revokeObjectURL(pdfData.url);
-          }, 1000);
-        } catch (error) {
-          console.error('Print error:', error);
-          window.print();
-          document.body.removeChild(iframe);
-          URL.revokeObjectURL(pdfData.url);
-        }
-      }, 500);
-    };
-
-    iframe.src = pdfData.url;
+    // Convert PDF to base64 and print silently (NO DIALOG - A5 paper!)
+    try {
+      const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfData.pdfBytes)));
+      
+      console.log('🖨️ Printing bilan silently with A5...');
+      await window.electronAPI.printPDF(pdfBase64, 'A5');
+      console.log('✅ Bilan printed successfully');
+    } catch (error) {
+      console.error('❌ Print error:', error);
+      alert('❌ Erreur d\'impression');
+    }
   };
 
   const handleDownloadBilan = async () => {
@@ -2289,13 +2269,6 @@ const OrdonnancePage: React.FC = () => {
                     disabled={isSaving || isDeleting}
                   >
                     {isSaving ? '⏳ Création...' : '➕ Nouveau'}
-                  </button>
-                  <button 
-                    onClick={handleSaveOrdonnance} 
-                    className="save-button"
-                    disabled={isSaving || isDeleting}
-                  >
-                    {isSaving ? '⏳ Sauvegarde...' : '💾 Sauvegarder'}
                   </button>
                   <button 
                     onClick={handleDeleteOrdonnance} 
@@ -2752,13 +2725,6 @@ const OrdonnancePage: React.FC = () => {
                   {isSaving ? '⏳ Création...' : '➕ Nouveau'}
                 </button>
                 <button 
-                  className="save-button"
-                  onClick={handleSaveBilanAct}
-                  disabled={isSaving || isDeleting}
-                >
-                  {isSaving ? '⏳ Sauvegarde...' : '💾 Sauvegarder'}
-                </button>
-                <button 
                   onClick={handleDeleteBilanAct} 
                   className="delete-button"
                   style={{
@@ -2962,28 +2928,12 @@ const OrdonnancePage: React.FC = () => {
                   {isSaving ? '⏳ Création...' : '➕ Nouveau'}
                 </button>
                 <button 
-                  onClick={handleSaveComptesRendu} 
-                  className="save-button"
-                  disabled={isSaving || isDeleting}
-                  style={{
-                    padding: '8px 16px',
-                    background: 'linear-gradient(135deg, #27AE60, #229954)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontWeight: '600',
-                    fontSize: '14px'
-                  }}
-                >
-                  {isSaving ? '⏳ Sauvegarde...' : '💾 Sauvegarder'}
-                </button>
-                <button 
                   onClick={handleDeleteComptesRendu} 
                   className="delete-button"
                   disabled={isSaving || isDeleting || comptesRendusActs.length === 0}
                   style={{
                     padding: '8px 16px',
+                    backgroundColor: isDeleting ? '#999' : '#dc3545',
                     background: 'linear-gradient(135deg, #E74C3C, #C0392B)',
                     color: 'white',
                     border: 'none',

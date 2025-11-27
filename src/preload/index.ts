@@ -232,6 +232,8 @@ const electronAPI = {
         ipcRenderer.invoke('db:honoraires:get-with-patients', date, medecin),
       getPatientVisits: (departmentCode: number) =>
         ipcRenderer.invoke('db:honoraires:get-patient-visits', departmentCode),
+      getForPatient: (patientCode: number) =>
+        ipcRenderer.invoke('db:honoraires:get-for-patient', patientCode),
     },
     
     // Visit Examinations API
@@ -385,6 +387,8 @@ const electronAPI = {
       ipcRenderer.invoke('db:honoraires:get-with-patients', date, medecin),
     getPatientVisits: (departmentCode: number) =>
       ipcRenderer.invoke('db:honoraires:get-patient-visits', departmentCode),
+    getForPatient: (patientCode: number) =>
+      ipcRenderer.invoke('db:honoraires:get-for-patient', patientCode),
   },
 
   // Payment Validation API
@@ -516,8 +520,13 @@ const electronAPI = {
     getByPatient: (patientCode: number) => ipcRenderer.invoke('ordonnances:getByPatient', patientCode),
     countByPatient: (patientCode: number) => ipcRenderer.invoke('ordonnances:countByPatient', patientCode),
     create: (data: any) => ipcRenderer.invoke('ordonnances:create', data),
+    update: (id: number, data: any) => ipcRenderer.invoke('ordonnances:update', id, data),
     delete: (id: number) => ipcRenderer.invoke('ordonnances:delete', id)
   },
+
+  // Print API
+  printPDF: (pdfBase64: string, paperSize: 'A4' | 'A5') => 
+    ipcRenderer.invoke('print:pdf', pdfBase64, paperSize),
 
   // Setup Wizard API
   getComputerName: () => ipcRenderer.invoke('setup:getComputerName'),
@@ -529,8 +538,7 @@ const electronAPI = {
     ipcRenderer.invoke('setup:importDatabase', sourcePath),
   isSetupComplete: () => 
     ipcRenderer.invoke('setup:isComplete'),
-  selectFile: (options: { filters?: Array<{ name: string, extensions: string[] }> }) => 
-    ipcRenderer.invoke('dialog:selectFile', options),
+  selectFile: (options: any) => ipcRenderer.invoke('dialog:selectFile', options),
 
   // Example ping for testing IPC
   ping: () => ipcRenderer.invoke('ping')

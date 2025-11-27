@@ -296,7 +296,7 @@ model PaymentValidation {
   validatedByUserId Int      @map("validated_by_user_id") // User ID
   validatedByRole   String   @map("validated_by_role") // User role
   validatedAt       DateTime @default(now()) @map("validated_at")
-  status            String   @default("completed") // completed, cancelled
+  status            String   @default("completed") // completed, cancelled, deleted
   notes             String?  // Optional notes
   
   @@index([patientCode])

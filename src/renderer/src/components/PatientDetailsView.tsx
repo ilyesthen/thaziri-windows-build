@@ -311,21 +311,23 @@ const PatientDetailsView: React.FC = () => {
     }
   }
 
-  // Load ALL payment history for this patient (all dates)
+  // Load ALL payment history for this patient (all dates) from Honoraires table
   const loadAllPaymentHistory = async (departmentCode: number) => {
     try {
-      console.log(`Loading ALL payment history for patient: ${departmentCode}`)
-      const result = await (window.electronAPI as any)?.payments?.getAllByPatient?.(departmentCode)
+      console.log(`📊 Loading ALL payment history for patient ${departmentCode} from Honoraires table`)
       
-      if (result?.success && result.payments) {
-        setPaymentHistory(result.payments)
-        console.log(`Found ${result.payments.length} payment(s) for this patient`)
+      // Get ALL honoraires for this patient from Comptabilité du Jour table
+      const result = await window.electronAPI.db.honoraires.getForPatient(departmentCode)
+      
+      if (result?.success && result.honoraires) {
+        console.log(`✅ Found ${result.honoraires.length} payment(s) in honoraires table`)
+        setPaymentHistory(result.honoraires)
       } else {
+        console.log('❌ No payments found in honoraires table')
         setPaymentHistory([])
-        console.log('No payments found for this patient')
       }
     } catch (error) {
-      console.error('Error loading payment history:', error)
+      console.error('❌ Error loading payment history from honoraires:', error)
       setPaymentHistory([])
     }
   }
@@ -441,27 +443,6 @@ const PatientDetailsView: React.FC = () => {
     } catch (error) {
       console.error('❌ Error navigating to new visit:', error)
       alert('Error navigating to new visit page. Please try again.')
-    }
-  }
-
-  // Fetch payment history for this patient from Honoraire table (same as Comptabilité du Jour)
-  const fetchPaymentHistory = async () => {
-    if (!patient?.departmentCode) return
-    
-    try {
-      // Use the correct function to get patient visits from honoraires
-      const result = await window.electronAPI.honoraires.getByDate('', '')
-      
-      if (result?.success && result.honoraires) {
-        // Filter honoraires for this specific patient
-        const patientHonoraires = result.honoraires.filter((h: any) => h.patientCode === patient.departmentCode)
-        setPaymentHistory(patientHonoraires)
-      } else {
-        setPaymentHistory([])
-      }
-    } catch (error) {
-      console.error('Error fetching payment history:', error)
-      setPaymentHistory([])
     }
   }
 
@@ -690,7 +671,7 @@ const PatientDetailsView: React.FC = () => {
                 </div>
               </div>
 
-              {/* K1, K2 */}
+              {/* K1, K2, Addition */}
               <div className="eye-fields-horizontal" style={{ marginTop: '12px' }}>
                 <div className="eye-field-group">
                   <label>K1</label>
@@ -709,6 +690,16 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input field-k2"
                     value={leftEye.k2}
                     onChange={(e) => setLeftEye({ ...leftEye, k2: e.target.value })}
+                    readOnly
+                  />
+                </div>
+                <div className="eye-field-group">
+                  <label>Addition</label>
+                  <input
+                    type="text"
+                    className="eye-input field-addition"
+                    value={addition}
+                    onChange={(e) => setAddition(e.target.value)}
                     readOnly
                   />
                 </div>
@@ -925,7 +916,7 @@ const PatientDetailsView: React.FC = () => {
                 </div>
               </div>
 
-              {/* K1, K2 */}
+              {/* K1, K2, Addition */}
               <div className="eye-fields-horizontal" style={{ marginTop: '12px' }}>
                 <div className="eye-field-group">
                   <label>K1</label>
@@ -944,6 +935,16 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input field-k2"
                     value={rightEye.k2}
                     onChange={(e) => setRightEye({ ...rightEye, k2: e.target.value })}
+                    readOnly
+                  />
+                </div>
+                <div className="eye-field-group">
+                  <label>Addition</label>
+                  <input
+                    type="text"
+                    className="eye-input field-addition"
+                    value={addition}
+                    onChange={(e) => setAddition(e.target.value)}
                     readOnly
                   />
                 </div>

@@ -420,7 +420,7 @@ const ContactLensModal: React.FC<ContactLensModalProps> = ({ isOpen, onClose, pa
       const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' })
       const url = URL.createObjectURL(blob)
       
-      return { blob, url, fileName: `lentilles_${lastName}_${firstName}_${date.replace(/\//g, '-')}.pdf` }
+      return { blob, url, fileName: `lentilles_${lastName}_${firstName}_${date.replace(/\//g, '-')}.pdf`, pdfBytes }
       
     } catch (error) {
       console.error('Error generating PDF:', error)
@@ -433,63 +433,17 @@ const ContactLensModal: React.FC<ContactLensModalProps> = ({ isOpen, onClose, pa
     const pdfData = await generatePDF()
     if (!pdfData) return
     
-    // Create a hidden iframe for direct printing with A5 page size
-    const iframe = document.createElement('iframe')
-    iframe.style.position = 'fixed'
-    iframe.style.width = '0'
-    iframe.style.height = '0'
-    iframe.style.border = 'none'
-    iframe.style.left = '-9999px'
-    iframe.style.top = '-9999px'
-    
-    document.body.appendChild(iframe)
-    
-    // Wait for iframe to be ready
-    iframe.onload = () => {
-      setTimeout(() => {
-        try {
-          // Add A5 page size CSS to iframe
-          const iframeDoc = iframe.contentWindow?.document
-          if (iframeDoc) {
-            const style = iframeDoc.createElement('style')
-            style.textContent = `
-              @page {
-                size: A5;
-                margin: 0;
-              }
-              @media print {
-                body, html {
-                  width: 148mm;
-                  height: 210mm;
-                }
-              }
-            `
-            iframeDoc.head.appendChild(style)
-          }
-          
-          // Focus the iframe
-          iframe.contentWindow?.focus()
-          
-          // Trigger print directly
-          iframe.contentWindow?.print()
-          
-          // Clean up after printing
-          setTimeout(() => {
-            document.body.removeChild(iframe)
-            URL.revokeObjectURL(pdfData.url)
-          }, 1000)
-        } catch (error) {
-          console.error('Print error:', error)
-          // Fallback: try to print anyway
-          window.print()
-          document.body.removeChild(iframe)
-          URL.revokeObjectURL(pdfData.url)
-        }
-      }, 500)
+    // Print silently with A5 paper size (NO DIALOG!)
+    try {
+      const pdfBase64 = btoa(String.fromCharCode(...new Uint8Array(pdfData.pdfBytes)))
+      
+      console.log('🖨️ Printing contact lens prescription silently with A5...')
+      await window.electronAPI.printPDF(pdfBase64, 'A5')
+      console.log('✅ Contact lens prescription printed successfully')
+    } catch (error) {
+      console.error('❌ Print error:', error)
+      alert('❌ Erreur d\'impression')
     }
-    
-    // Set the iframe source to the PDF
-    iframe.src = pdfData.url
   }
   
   const handleDownload = async () => {
