@@ -9,6 +9,7 @@ import PatientDetailsView from './components/PatientDetailsView'
 import NewVisitPage from './components/NewVisitPage'
 import OrdonnancePage from './components/OrdonnancePage'
 import SetupWizard from './components/SetupWizard'
+import ErrorBoundary from './components/ErrorBoundary'
 // import HiIlyesPage from './components/HiIlyesPage' // Kept for reference but not used
 import FloatingAIChat from './components/FloatingAIChat'
 import MessageListener from './components/MessageListener'
@@ -151,48 +152,50 @@ function App() {
   
   // Main authenticated app
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Navigate to="/" replace />} />
-        <Route 
-          path="/" 
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route 
-          path="/patient/:patientId" 
-          element={
-            <ProtectedRoute>
-              <PatientDetailsView />
-            </ProtectedRoute>
-          }
-        />
-        <Route 
-          path="/new-visit/:patientId" 
-          element={
-            <ProtectedRoute>
-              <NewVisitPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route 
-          path="/ordonnance" 
-          element={
-            <ProtectedRoute>
-              <OrdonnancePage />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-      {/* Message Listener for room-based messaging */}
-      <MessageListener />
-      {/* Floating AI Chat for doctors and assistants */}
-      <FloatingAIChat />
-      {/* Floating Messaging Buttons removed */}
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/patient/:patientId" 
+            element={
+              <ProtectedRoute>
+                <PatientDetailsView />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/new-visit/:patientId" 
+            element={
+              <ProtectedRoute>
+                <NewVisitPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/ordonnance" 
+            element={
+              <ProtectedRoute>
+                <OrdonnancePage />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+        {/* Message Listener for room-based messaging */}
+        <MessageListener />
+        {/* Floating AI Chat for doctors and assistants */}
+        <FloatingAIChat />
+        {/* Floating Messaging Buttons removed */}
+      </Router>
+    </ErrorBoundary>
   )
 }
 

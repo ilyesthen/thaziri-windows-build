@@ -349,6 +349,14 @@ interface ElectronAPI {
 
   printPDF: (pdfBase64: string, paperSize: 'A4' | 'A5') => Promise<{ success: boolean; error?: string }>
 
+  // Setup Wizard API
+  getComputerName: () => Promise<string>
+  setupDatabase: (config: { mode: 'admin' | 'client', databasePath?: string, shareName?: string }) => Promise<{ success: boolean; mode?: string; error?: string }>
+  testDatabaseConnection: (databasePath: string) => Promise<{ success: boolean; error?: string }>
+  importDatabase: (sourcePath: string) => Promise<{ success: boolean; error?: string }>
+  isSetupComplete: () => Promise<{ complete: boolean; mode?: string; completedAt?: string; [key: string]: any }>
+  selectFile: (options: any) => Promise<string | null>
+
   comptesRendus: {
     getAll: () => Promise<{ success: boolean; data?: any[]; error?: string }>
     search: (searchTerm: string) => Promise<{ success: boolean; data?: any[]; error?: string }>
