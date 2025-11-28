@@ -652,7 +652,7 @@ ipcMain.handle('db:update-patient', async (_, data: db.UpdatePatientInput) => {
 
 ipcMain.handle('db:delete-patient', async (_, id: number) => {
   try {
-    await dbRouter.deletePatient(id)
+    await db.deletePatient(id)
     return { success: true }
   } catch (error: any) {
     console.error('Failed to delete patient:', error)
@@ -664,7 +664,7 @@ ipcMain.handle('db:delete-patient', async (_, id: number) => {
 
 ipcMain.handle('templates:get-all', async () => {
   try {
-    const templates = await dbRouter.getAllTemplates()
+    const templates = await db.getAllTemplates()
     return { success: true, templates }
   } catch (error: any) {
     console.error('Failed to get templates:', error)
@@ -674,7 +674,7 @@ ipcMain.handle('templates:get-all', async () => {
 
 ipcMain.handle('templates:create', async (_, content: string) => {
   try {
-    const template = await dbRouter.createTemplate({ content })
+    const template = await db.createTemplate({ content })
     return { success: true, template }
   } catch (error: any) {
     console.error('Failed to create template:', error)
@@ -684,7 +684,7 @@ ipcMain.handle('templates:create', async (_, content: string) => {
 
 ipcMain.handle('templates:update', async (_, { id, content }: { id: number; content: string }) => {
   try {
-    const template = await dbRouter.updateTemplate(id, { content })
+    const template = await db.updateTemplate(id, { content })
     return { success: true, template }
   } catch (error: any) {
     console.error('Failed to update template:', error)
@@ -694,7 +694,7 @@ ipcMain.handle('templates:update', async (_, { id, content }: { id: number; cont
 
 ipcMain.handle('templates:delete', async (_, id: number) => {
   try {
-    await dbRouter.deleteTemplate(id)
+    await db.deleteTemplate(id)
     return { success: true }
   } catch (error: any) {
     console.error('Failed to delete template:', error)
@@ -706,7 +706,7 @@ ipcMain.handle('templates:delete', async (_, id: number) => {
 
 ipcMain.handle('honoraires:get-all', async () => {
   try {
-    const honoraires = await dbRouter.getAllActesHonoraires()
+    const honoraires = await db.getAllActesHonoraires()
     return { success: true, honoraires }
   } catch (error: any) {
     console.error('Failed to get honoraires:', error)
@@ -716,10 +716,10 @@ ipcMain.handle('honoraires:get-all', async () => {
 
 ipcMain.handle('honoraires:create', async (_, data: db.CreateActeHonoraireInput, userId?: number, userRole?: string) => {
   try {
-    const honoraire = await dbRouter.createActeHonoraire(data)
+    const honoraire = await db.createActeHonoraire(data)
     
     // Audit log
-    await dbRouter.createAuditLog({
+    await db.createAuditLog({
       userId,
       userRole,
       actionType: 'honoraires:create',
@@ -735,10 +735,10 @@ ipcMain.handle('honoraires:create', async (_, data: db.CreateActeHonoraireInput,
 
 ipcMain.handle('honoraires:update', async (_, data: db.UpdateActeHonoraireInput, userId?: number, userRole?: string) => {
   try {
-    const honoraire = await dbRouter.updateActeHonoraire(data)
+    const honoraire = await db.updateActeHonoraire(data)
     
     // Audit log
-    await dbRouter.createAuditLog({
+    await db.createAuditLog({
       userId,
       userRole,
       actionType: 'honoraires:update',
@@ -755,12 +755,12 @@ ipcMain.handle('honoraires:update', async (_, data: db.UpdateActeHonoraireInput,
 ipcMain.handle('honoraires:delete', async (_, id: number, userId?: number, userRole?: string) => {
   try {
     // Get the honoraire details before deleting for audit log
-    const honoraire = await dbRouter.getActeHonoraireById(id)
+    const honoraire = await db.getActeHonoraireById(id)
     
-    await dbRouter.deleteActeHonoraire(id)
+    await db.deleteActeHonoraire(id)
     
     // Audit log
-    await dbRouter.createAuditLog({
+    await db.createAuditLog({
       userId,
       userRole,
       actionType: 'honoraires:delete',
@@ -778,7 +778,7 @@ ipcMain.handle('honoraires:delete', async (_, id: number, userId?: number, userR
 
 ipcMain.handle('db:assistant-user:get-or-create', async (_, data: { fullName: string; role: string; percentage: number }) => {
   try {
-    const assistantUser = await dbRouter.getOrCreateAssistant(data.fullName, data.role, data.percentage)
+    const assistantUser = await db.getOrCreateAssistant(data.fullName, data.role, data.percentage)
     return { success: true, assistantUser }
   } catch (error: any) {
     console.error('Error getting or creating assistant user:', error)
@@ -788,7 +788,7 @@ ipcMain.handle('db:assistant-user:get-or-create', async (_, data: { fullName: st
 
 ipcMain.handle('db:assistant-user:find-by-name', async (_, fullName: string) => {
   try {
-    const assistantUser = await dbRouter.findAssistantByName(fullName)
+    const assistantUser = await db.findAssistantByName(fullName)
     return { success: true, assistantUser }
   } catch (error: any) {
     console.error('Error finding assistant user:', error)
@@ -798,7 +798,7 @@ ipcMain.handle('db:assistant-user:find-by-name', async (_, fullName: string) => 
 
 ipcMain.handle('db:assistant-user:update', async (_, data: { id: number; updates: any }) => {
   try {
-    const assistantUser = await dbRouter.updateAssistantUser(data.id, data.updates)
+    const assistantUser = await db.updateAssistantUser(data.id, data.updates)
     return { success: true, assistantUser }
   } catch (error: any) {
     console.error('Error updating assistant user:', error)
@@ -808,7 +808,7 @@ ipcMain.handle('db:assistant-user:update', async (_, data: { id: number; updates
 
 ipcMain.handle('db:assistant-user:get-all', async () => {
   try {
-    const assistantUsers = await dbRouter.getAllAssistantUsers()
+    const assistantUsers = await db.getAllAssistantUsers()
     return { success: true, assistantUsers }
   } catch (error: any) {
     console.error('Error getting all assistant users:', error)
@@ -820,7 +820,7 @@ ipcMain.handle('db:assistant-user:get-all', async () => {
 
 ipcMain.handle('db:assistant-session:create', async (_, data: { userId: number; assistantName: string; percentage: number; assistantUserId?: number }) => {
   try {
-    const session = await dbRouter.createAssistantSession(data)
+    const session = await db.createAssistantSession(data)
     return { success: true, session }
   } catch (error: any) {
     console.error('Error creating assistant session:', error)
@@ -830,7 +830,7 @@ ipcMain.handle('db:assistant-session:create', async (_, data: { userId: number; 
 
 ipcMain.handle('db:assistant-session:close', async (_, sessionId: number) => {
   try {
-    const session = await dbRouter.closeAssistantSession(sessionId)
+    const session = await db.closeAssistantSession(sessionId)
     return { success: true, session }
   } catch (error: any) {
     console.error('Error closing assistant session:', error)
@@ -840,7 +840,7 @@ ipcMain.handle('db:assistant-session:close', async (_, sessionId: number) => {
 
 ipcMain.handle('db:assistant-session:get-active', async (_, userId: number) => {
   try {
-    const sessions = await dbRouter.getActiveAssistantSessions(userId)
+    const sessions = await db.getActiveAssistantSessions(userId)
     return { success: true, sessions }
   } catch (error: any) {
     console.error('Error getting active sessions:', error)
@@ -850,7 +850,7 @@ ipcMain.handle('db:assistant-session:get-active', async (_, userId: number) => {
 
 ipcMain.handle('db:assistant-session:get-history', async (_, userId?: number) => {
   try {
-    const sessions = await dbRouter.getAssistantSessionHistory(userId)
+    const sessions = await db.getAssistantSessionHistory(userId)
     return { success: true, sessions }
   } catch (error: any) {
     console.error('Error getting session history:', error)
@@ -862,7 +862,7 @@ ipcMain.handle('db:assistant-session:get-history', async (_, userId?: number) =>
 
 ipcMain.handle('db:honoraires:get-by-date', async (_, date: string, medecin?: string) => {
   try {
-    const honoraires = await dbRouter.getHonorairesByDate(date, medecin)
+    const honoraires = await db.getHonorairesByDate(date, medecin)
     return { success: true, honoraires }
   } catch (error: any) {
     console.error('Error getting honoraires by date:', error)
@@ -872,7 +872,7 @@ ipcMain.handle('db:honoraires:get-by-date', async (_, date: string, medecin?: st
 
 ipcMain.handle('db:honoraires:get-with-patients', async (_, date: string, medecin?: string) => {
   try {
-    const records = await dbRouter.getHonorairesWithPatients(date, medecin)
+    const records = await db.getHonorairesWithPatients(date, medecin)
     return { success: true, records }
   } catch (error: any) {
     console.error('Error getting honoraires with patients:', error)
@@ -882,7 +882,7 @@ ipcMain.handle('db:honoraires:get-with-patients', async (_, date: string, medeci
 
 ipcMain.handle('db:honoraires:get-patient-visits', async (_, departmentCode: number) => {
   try {
-    const visits = await dbRouter.getPatientVisitHistory(departmentCode)
+    const visits = await db.getPatientVisitHistory(departmentCode)
     return { success: true, visits }
   } catch (error: any) {
     console.error('Error getting patient visit history:', error)
@@ -892,7 +892,7 @@ ipcMain.handle('db:honoraires:get-patient-visits', async (_, departmentCode: num
 
 ipcMain.handle('db:honoraires:delete', async (_, id: number) => {
   try {
-    await dbRouter.deleteHonoraire(id)
+    await db.deleteHonoraire(id)
     return { success: true }
   } catch (error: any) {
     console.error('Error deleting honoraire:', error)
@@ -902,7 +902,7 @@ ipcMain.handle('db:honoraires:delete', async (_, id: number) => {
 
 ipcMain.handle('db:honoraires:get-for-patient', async (_, patientCode: number) => {
   try {
-    const result = await dbRouter.getHonorairesForPatient(patientCode)
+    const result = await db.getHonorairesForPatient(patientCode)
     return result
   } catch (error: any) {
     console.error('Error getting honoraires for patient:', error)
@@ -913,7 +913,7 @@ ipcMain.handle('db:honoraires:get-for-patient', async (_, patientCode: number) =
 // Visit Examinations IPC Handlers
 ipcMain.handle('db:visit-examinations:get-all', async (_, departmentCode: number) => {
   try {
-    const examinations = await dbRouter.getPatientVisitExaminations(departmentCode)
+    const examinations = await db.getPatientVisitExaminations(departmentCode)
     return { success: true, examinations }
   } catch (error: any) {
     console.error('Error getting visit examinations:', error)
@@ -923,7 +923,7 @@ ipcMain.handle('db:visit-examinations:get-all', async (_, departmentCode: number
 
 ipcMain.handle('db:visit-examinations:get-by-date', async (_, departmentCode: number, visitDate: string) => {
   try {
-    const examination = await dbRouter.getVisitExaminationByDate(departmentCode, visitDate)
+    const examination = await db.getVisitExaminationByDate(departmentCode, visitDate)
     return { success: true, examination }
   } catch (error: any) {
     console.error('Error getting visit examination by date:', error)
@@ -933,7 +933,7 @@ ipcMain.handle('db:visit-examinations:get-by-date', async (_, departmentCode: nu
 
 ipcMain.handle('db:visit-examinations:get-all-by-patient', async (_, patientCode: number) => {
   try {
-    const examinations = await dbRouter.getAllVisitExaminationsByPatientCode(patientCode)
+    const examinations = await db.getAllVisitExaminationsByPatientCode(patientCode)
     return { success: true, examinations }
   } catch (error: any) {
     console.error('Error getting visit examinations by patient:', error)
@@ -943,7 +943,7 @@ ipcMain.handle('db:visit-examinations:get-all-by-patient', async (_, patientCode
 
 ipcMain.handle('db:visit-examinations:create', async (_, data: any) => {
   try {
-    const examination = await dbRouter.createVisitExamination(data)
+    const examination = await db.createVisitExamination(data)
     return { success: true, examination }
   } catch (error: any) {
     console.error('Error creating visit examination:', error)
@@ -953,7 +953,7 @@ ipcMain.handle('db:visit-examinations:create', async (_, data: any) => {
 
 ipcMain.handle('db:visit-examinations:get-by-id', async (_, id: number) => {
   try {
-    const examination = await dbRouter.getVisitExaminationById(id)
+    const examination = await db.getVisitExaminationById(id)
     return { success: true, examination }
   } catch (error: any) {
     console.error('Error getting visit examination by ID:', error)
@@ -963,7 +963,7 @@ ipcMain.handle('db:visit-examinations:get-by-id', async (_, id: number) => {
 
 ipcMain.handle('db:visit-examinations:update', async (_, id: number, data: any) => {
   try {
-    const examination = await dbRouter.updateVisitExamination(id, data)
+    const examination = await db.updateVisitExamination(id, data)
     return { success: true, examination }
   } catch (error: any) {
     console.error('Error updating visit examination:', error)
@@ -973,7 +973,7 @@ ipcMain.handle('db:visit-examinations:update', async (_, id: number, data: any) 
 
 ipcMain.handle('db:visit-examinations:delete', async (_, id: number) => {
   try {
-    await dbRouter.deleteVisitExamination(id)
+    await db.deleteVisitExamination(id)
     return { success: true }
   } catch (error: any) {
     console.error('Error deleting visit examination:', error)
@@ -986,7 +986,7 @@ ipcMain.handle('db:visit-examinations:delete', async (_, id: number) => {
 
 ipcMain.handle('db:salles:get-all', async () => {
   try {
-    const salles = await dbRouter.getAllSalles()
+    const salles = await db.getAllSalles()
     return { success: true, salles }
   } catch (error: any) {
     console.error('Error getting salles:', error)
@@ -996,7 +996,7 @@ ipcMain.handle('db:salles:get-all', async () => {
 
 ipcMain.handle('db:salles:get-active', async () => {
   try {
-    const salles = await dbRouter.getActiveSalles()
+    const salles = await db.getActiveSalles()
     return { success: true, salles }
   } catch (error: any) {
     console.error('Error getting active salles:', error)
@@ -1006,7 +1006,7 @@ ipcMain.handle('db:salles:get-active', async () => {
 
 ipcMain.handle('db:salles:get-by-id', async (_, id: number) => {
   try {
-    const salle = await dbRouter.getSalleById(id)
+    const salle = await db.getSalleById(id)
     return { success: true, salle }
   } catch (error: any) {
     console.error('Error getting salle:', error)
@@ -1016,7 +1016,7 @@ ipcMain.handle('db:salles:get-by-id', async (_, id: number) => {
 
 ipcMain.handle('db:salles:create', async (_, data: { name: string; description?: string }) => {
   try {
-    const salle = await dbRouter.createSalle(data)
+    const salle = await db.createSalle(data)
     return { success: true, salle }
   } catch (error: any) {
     console.error('Error creating salle:', error)
@@ -1026,7 +1026,7 @@ ipcMain.handle('db:salles:create', async (_, data: { name: string; description?:
 
 ipcMain.handle('db:salles:update', async (_, id: number, data: { name?: string; description?: string; isActive?: boolean }) => {
   try {
-    const salle = await dbRouter.updateSalle(id, data)
+    const salle = await db.updateSalle(id, data)
     return { success: true, salle }
   } catch (error: any) {
     console.error('Error updating salle:', error)
@@ -1036,7 +1036,7 @@ ipcMain.handle('db:salles:update', async (_, id: number, data: { name?: string; 
 
 ipcMain.handle('db:salles:delete', async (_, id: number) => {
   try {
-    await dbRouter.deleteSalle(id)
+    await db.deleteSalle(id)
     return { success: true }
   } catch (error: any) {
     console.error('Error deleting salle:', error)
@@ -1046,7 +1046,7 @@ ipcMain.handle('db:salles:delete', async (_, id: number) => {
 
 ipcMain.handle('db:users:update-current-salle', async (_, userId: number, salleId: number | null) => {
   try {
-    const user = await dbRouter.updateUserCurrentSalle(userId, salleId)
+    const user = await db.updateUserCurrentSalle(userId, salleId)
     return { success: true, user }
   } catch (error: any) {
     console.error('Error updating user current salle:', error)
@@ -1056,7 +1056,7 @@ ipcMain.handle('db:users:update-current-salle', async (_, userId: number, salleI
 
 ipcMain.handle('db:assistant-sessions:update-salle', async (_, sessionId: number, salleId: number) => {
   try {
-    const session = await dbRouter.updateAssistantSessionSalle(sessionId, salleId)
+    const session = await db.updateAssistantSessionSalle(sessionId, salleId)
     return { success: true, session }
   } catch (error: any) {
     console.error('Error updating assistant session salle:', error)
@@ -1077,7 +1077,7 @@ ipcMain.handle('db:salles:lock', async (_, salleId: number, userData: {
     // Track the current user for cleanup on app close
     currentUserId = userData.userId
     
-    const salle = await dbRouter.lockSalle(salleId, userData)
+    const salle = await db.lockSalle(salleId, userData)
     console.log('✅ Salle locked successfully:', salle)
     return { success: true, salle }
   } catch (error: any) {
@@ -1089,7 +1089,7 @@ ipcMain.handle('db:salles:lock', async (_, salleId: number, userData: {
 
 ipcMain.handle('db:salles:unlock', async (_, salleId: number) => {
   try {
-    const salle = await dbRouter.unlockSalle(salleId)
+    const salle = await db.unlockSalle(salleId)
     return { success: true, salle }
   } catch (error: any) {
     console.error('Error unlocking salle:', error)
@@ -1099,7 +1099,7 @@ ipcMain.handle('db:salles:unlock', async (_, salleId: number) => {
 
 ipcMain.handle('db:salles:check-lock', async (_, salleId: number) => {
   try {
-    const result = await dbRouter.isSalleLocked(salleId)
+    const result = await db.isSalleLocked(salleId)
     return { success: true, ...result }
   } catch (error: any) {
     console.error('Error checking salle lock:', error)
@@ -1109,7 +1109,7 @@ ipcMain.handle('db:salles:check-lock', async (_, salleId: number) => {
 
 ipcMain.handle('db:salles:get-locked', async () => {
   try {
-    const salles = await dbRouter.getLockedSalles()
+    const salles = await db.getLockedSalles()
     return { success: true, salles }
   } catch (error: any) {
     console.error('Error getting locked salles:', error)
@@ -1140,7 +1140,7 @@ ipcMain.handle('db:salles:unlock-user-salles', async (_, userId: number) => {
 
 ipcMain.handle('db:payments:checkValidation', async (_, patientCode: number, visitDate: string) => {
   try {
-    const result = await dbRouter.checkPaymentValidation(patientCode, visitDate)
+    const result = await db.checkPaymentValidation(patientCode, visitDate)
     return result
   } catch (error: any) {
     console.error('Error checking payment validation:', error)
@@ -1162,7 +1162,7 @@ ipcMain.handle('db:payments:create', async (_, data: {
   notes?: string
 }) => {
   try {
-    const payment = await dbRouter.createPaymentValidation(data)
+    const payment = await db.createPaymentValidation(data)
     return { success: true, payment }
   } catch (error: any) {
     console.error('Error creating payment validation:', error)
@@ -1178,7 +1178,7 @@ ipcMain.handle('db:payments:get-all', async (_, filters?: {
   status?: string
 }) => {
   try {
-    const payments = await dbRouter.getPaymentValidations(filters)
+    const payments = await db.getPaymentValidations(filters)
     return { success: true, payments }
   } catch (error: any) {
     console.error('Error getting payment validations:', error)
@@ -1188,7 +1188,7 @@ ipcMain.handle('db:payments:get-all', async (_, filters?: {
 
 ipcMain.handle('db:payments:get-by-date', async (_, date: string) => {
   try {
-    const payments = await dbRouter.getPaymentsByDate(date)
+    const payments = await db.getPaymentsByDate(date)
     return { success: true, payments }
   } catch (error: any) {
     console.error('Error getting payments by date:', error)
@@ -1199,7 +1199,7 @@ ipcMain.handle('db:payments:get-by-date', async (_, date: string) => {
 ipcMain.handle('db:check-payment-validation', async (_, patientCode: string, visitDate: string) => {
   try {
     // Check if there's any payment for this patient on this date
-    const payments = await dbRouter.getPaymentValidations({
+    const payments = await db.getPaymentValidations({
       patientCode: parseInt(patientCode),
       startDate: visitDate,
       endDate: visitDate
@@ -1214,7 +1214,7 @@ ipcMain.handle('db:check-payment-validation', async (_, patientCode: string, vis
 
 ipcMain.handle('db:payments:get-today-by-user', async () => {
   try {
-    const paymentsByUser = await dbRouter.getTodayPaymentsByUser()
+    const paymentsByUser = await db.getTodayPaymentsByUser()
     return { success: true, paymentsByUser }
   } catch (error: any) {
     console.error('Error getting today payments by user:', error)
@@ -1224,7 +1224,7 @@ ipcMain.handle('db:payments:get-today-by-user', async () => {
 
 ipcMain.handle('db:payments:get-logs', async (_, paymentId?: number) => {
   try {
-    const logs = await dbRouter.getPaymentLogs(paymentId)
+    const logs = await db.getPaymentLogs(paymentId)
     return { success: true, logs }
   } catch (error: any) {
     console.error('Error getting payment logs:', error)
@@ -1240,7 +1240,7 @@ ipcMain.handle('db:payments:cancel', async (_,
   reason: string
 ) => {
   try {
-    const payment = await dbRouter.cancelPaymentValidation(paymentId, cancelledBy, cancelledByUserId, cancelledByRole, reason)
+    const payment = await db.cancelPaymentValidation(paymentId, cancelledBy, cancelledByUserId, cancelledByRole, reason)
     return { success: true, payment }
   } catch (error: any) {
     console.error('Error cancelling payment:', error)
@@ -1256,7 +1256,7 @@ ipcMain.handle('db:payments:delete', async (_,
   reason: string
 ) => {
   try {
-    await dbRouter.deletePaymentValidation(paymentId, deletedBy, deletedByUserId, deletedByRole, reason)
+    await db.deletePaymentValidation(paymentId, deletedBy, deletedByUserId, deletedByRole, reason)
     return { success: true }
   } catch (error: any) {
     console.error('Error deleting payment:', error)
@@ -1270,7 +1270,7 @@ ipcMain.handle('db:payments:link-to-visit', async (_,
   visitId: number
 ) => {
   try {
-    await dbRouter.linkPaymentsToVisit(patientCode, visitDate, visitId)
+    await db.linkPaymentsToVisit(patientCode, visitDate, visitId)
     return { success: true }
   } catch (error: any) {
     console.error('Error linking payments to visit:', error)
@@ -1287,7 +1287,7 @@ ipcMain.handle('db:payments:delete-all-for-patient-date', async (_,
   reason: string
 ) => {
   try {
-    const result = await dbRouter.deleteAllPaymentsForPatientDate(patientCode, visitDate, deletedBy, deletedByUserId, deletedByRole, reason)
+    const result = await db.deleteAllPaymentsForPatientDate(patientCode, visitDate, deletedBy, deletedByUserId, deletedByRole, reason)
     return { success: true, deletedCount: result }
   } catch (error: any) {
     console.error('Error deleting all payments for patient date:', error)
@@ -1297,7 +1297,7 @@ ipcMain.handle('db:payments:delete-all-for-patient-date', async (_,
 
 ipcMain.handle('db:payments:getAllByPatient', async (_, patientCode: number) => {
   try {
-    const result = await dbRouter.getAllPaymentsByPatient(patientCode)
+    const result = await db.getAllPaymentsByPatient(patientCode)
     return result
   } catch (error: any) {
     console.error('Error getting all payments by patient:', error)
@@ -1309,7 +1309,7 @@ ipcMain.handle('db:payments:getAllByPatient', async (_, patientCode: number) => 
 
 ipcMain.handle('db:queue:sendToRoom', async (_, data: any) => {
   try {
-    const queueItem = await dbRouter.sendPatientToRoom(data)
+    const queueItem = await db.sendPatientToRoom(data)
     return { success: true, queueItem }
   } catch (error: any) {
     console.error('Error sending patient to room:', error)
@@ -1319,7 +1319,7 @@ ipcMain.handle('db:queue:sendToRoom', async (_, data: any) => {
 
 ipcMain.handle('db:queue:sendToNurse', async (_, data: any) => {
   try {
-    const queueItem = await dbRouter.sendPatientToNurse(data)
+    const queueItem = await db.sendPatientToNurse(data)
     return { success: true, queueItem }
   } catch (error: any) {
     console.error('Error sending patient to nurse:', error)
@@ -1329,7 +1329,7 @@ ipcMain.handle('db:queue:sendToNurse', async (_, data: any) => {
 
 ipcMain.handle('db:queue:getQueue', async (_, userId: number, userRole: string) => {
   try {
-    const queue = await dbRouter.getPatientQueue(userId, userRole)
+    const queue = await db.getPatientQueue(userId, userRole)
     return { success: true, queue }
   } catch (error: any) {
     console.error('Error getting patient queue:', error)
@@ -1339,7 +1339,7 @@ ipcMain.handle('db:queue:getQueue', async (_, userId: number, userRole: string) 
 
 ipcMain.handle('db:queue:getSentItems', async (_, userId: number) => {
   try {
-    const items = await dbRouter.getSentQueueItems(userId)
+    const items = await db.getSentQueueItems(userId)
     return { success: true, items }
   } catch (error: any) {
     console.error('Error getting sent queue items:', error)
@@ -1349,7 +1349,7 @@ ipcMain.handle('db:queue:getSentItems', async (_, userId: number) => {
 
 ipcMain.handle('db:queue:markSeen', async (_, queueId: number) => {
   try {
-    await dbRouter.markQueueItemSeen(queueId)
+    await db.markQueueItemSeen(queueId)
     return { success: true }
   } catch (error: any) {
     console.error('Error marking queue item as seen:', error)
@@ -1359,7 +1359,7 @@ ipcMain.handle('db:queue:markSeen', async (_, queueId: number) => {
 
 ipcMain.handle('db:queue:markCompleted', async (_, queueId: number) => {
   try {
-    await dbRouter.markQueueItemCompleted(queueId)
+    await db.markQueueItemCompleted(queueId)
     return { success: true }
   } catch (error: any) {
     console.error('Error marking queue completed:', error)
@@ -1369,7 +1369,7 @@ ipcMain.handle('db:queue:markCompleted', async (_, queueId: number) => {
 
 ipcMain.handle('db:queue:toggleChecked', async (_, queueId: number, isChecked: boolean) => {
   try {
-    await dbRouter.toggleQueueItemChecked(queueId, isChecked)
+    await db.toggleQueueItemChecked(queueId, isChecked)
     return { success: true }
   } catch (error: any) {
     console.error('Error toggling queue checked:', error)
@@ -1379,7 +1379,7 @@ ipcMain.handle('db:queue:toggleChecked', async (_, queueId: number, isChecked: b
 
 ipcMain.handle('db:queue:getDailySentCount', async (_, roomId: number, date: string) => {
   try {
-    const count = await dbRouter.getDailySentCountForRoom(roomId, date)
+    const count = await db.getDailySentCountForRoom(roomId, date)
     return { success: true, count }
   } catch (error: any) {
     console.error('Error getting daily sent count:', error)
@@ -1390,7 +1390,7 @@ ipcMain.handle('db:queue:getDailySentCount', async (_, roomId: number, date: str
 // Message handlers
 ipcMain.handle('db:messages:save', async (_, messageData) => {
   try {
-    const message = await dbRouter.saveMessage(messageData)
+    const message = await db.saveMessage(messageData)
     return { success: true, message }
   } catch (error: any) {
     console.error('Error saving message:', error)
@@ -1400,7 +1400,7 @@ ipcMain.handle('db:messages:save', async (_, messageData) => {
 
 ipcMain.handle('db:messages:getRoomMessages', async (_, roomId: number, limit?: number) => {
   try {
-    const messages = await dbRouter.getRoomMessages(roomId, limit || 50)
+    const messages = await db.getRoomMessages(roomId, limit || 50)
     return { success: true, messages }
   } catch (error: any) {
     console.error('Error getting room messages:', error)
@@ -1410,7 +1410,7 @@ ipcMain.handle('db:messages:getRoomMessages', async (_, roomId: number, limit?: 
 
 ipcMain.handle('db:messages:getUserMessages', async (_, userId: number, limit?: number) => {
   try {
-    const messages = await dbRouter.getUserMessages(userId, limit || 50)
+    const messages = await db.getUserMessages(userId, limit || 50)
     return { success: true, messages }
   } catch (error: any) {
     console.error('Error getting user messages:', error)
@@ -1420,7 +1420,7 @@ ipcMain.handle('db:messages:getUserMessages', async (_, userId: number, limit?: 
 
 ipcMain.handle('db:messages:markAsRead', async (_, messageId: number) => {
   try {
-    await dbRouter.markMessageAsRead(messageId)
+    await db.markMessageAsRead(messageId)
     return { success: true }
   } catch (error: any) {
     console.error('Error marking message as read:', error)
@@ -1430,7 +1430,7 @@ ipcMain.handle('db:messages:markAsRead', async (_, messageId: number) => {
 
 ipcMain.handle('db:messages:getUnreadCount', async (_, userId?: number, roomId?: number) => {
   try {
-    const count = await dbRouter.getUnreadMessageCount(userId, roomId)
+    const count = await db.getUnreadMessageCount(userId, roomId)
     return { success: true, count }
   } catch (error: any) {
     console.error('Error getting unread count:', error)

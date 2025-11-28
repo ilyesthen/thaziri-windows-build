@@ -64,6 +64,20 @@ export class DatabaseClient {
     }
   }
 
+  // Execute any database function by name
+  async executeDatabaseFunction(functionName: string, ...args: any[]): Promise<any> {
+    try {
+      const response = await this.client.post('/db/execute', {
+        functionName,
+        args
+      })
+      return response.data
+    } catch (error: any) {
+      console.error(`Database function ${functionName} error:`, error)
+      throw new Error(error.response?.data?.error || error.message)
+    }
+  }
+
   // Optimized endpoints
   async getAllPatients(): Promise<any> {
     const response = await this.client.get('/patients')

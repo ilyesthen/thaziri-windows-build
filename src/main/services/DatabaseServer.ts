@@ -117,7 +117,39 @@ export class DatabaseServer {
       }
     })
 
-    // All other operations use the generic /query endpoint
+    // ====================  COMPREHENSIVE API ENDPOINTS ====================
+    // These proxy calls to the database functions
+    
+    // Execute any database function by name
+    this.app.post('/db/execute', async (req, res) => {
+      try {
+        const { functionName, args } = req.body
+        
+        if (!functionName) {
+          return res.status(400).json({ error: 'Missing functionName' })
+        }
+        
+        // Import database module and call the function
+        const db = require('../database')
+        const func = db[functionName]
+        
+        if (!func || typeof func !== 'function') {
+          return res.status(400).json({ error: `Function ${functionName} not found` })
+        }
+        
+        // Call the function with arguments
+        const result = await func(...(args || []))
+        
+        res.json({ success: true, data: result })
+      } catch (error: any) {
+        console.error('DB Execute error:', error)
+        res.status(500).json({ 
+          success: false, 
+          error: error.message,
+          details: error.toString()
+        })
+      }
+    })
   }
 
   async start(): Promise<{ success: boolean; port?: number; ip?: string; error?: string }> {
