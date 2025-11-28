@@ -11,30 +11,136 @@
  */
 
 :root {
-  /* Base Layer - Normal content */
+  /* Base z-index hierarchy for the application */
+  
+  /* Background and base layers */
+  --z-background: 0;
   --z-base: 1;
-  --z-dropdown: 100;
-  --z-sticky-header: 200;
   
-  /* UI Elements that float but don't block */
-  --z-floating-button: 900;
+  /* Content layers */
+  --z-content: 100;
+  --z-header: 200;
+  --z-sidebar: 300;
   
-  /* Modals and Overlays - ONLY when open */
+  /* Interactive elements */
+  --z-dropdown: 400;
+  --z-tooltip: 500;
+  --z-sticky: 600;
+  
+  /* Overlays */
+  --z-overlay: 900;
   --z-modal-backdrop: 1000;
   --z-modal-content: 1001;
   
-  /* Higher priority modals */
-  --z-priority-modal-backdrop: 2000;
-  --z-priority-modal-content: 2001;
+  /* Top-level UI */
+  --z-notification: 2000;
+  --z-toast: 2500;
   
-  /* Top layer - AI Chat (should be accessible but not block modals) */
+  /* AI Chat - Highest priority for user interaction */
   --z-ai-chat-button: 3000;
-  --z-ai-chat-backdrop: 2999;
-  --z-ai-chat-content: 3001;
+  --z-ai-chat-backdrop: 2997;
+  --z-ai-chat-content: 2998;
   
-  /* Absolute top - Error messages, tooltips */
-  --z-tooltip: 4000;
-  --z-notification: 5000;
+  /* Always on top */
+  --z-loading: 4000;
+  --z-critical: 9999;
+}
+
+/* ==================== GLOBAL MODAL FIXES ==================== */
+
+/* ALL modal overlays should use the global backdrop z-index */
+.modal-overlay,
+div[class*="modal"][class*="overlay"],
+div[style*="position: fixed"][style*="inset: 0"],
+div[style*="position: fixed"][style*="top: 0"][style*="left: 0"][style*="right: 0"][style*="bottom: 0"] {
+  z-index: var(--z-modal-backdrop) !important;
+  pointer-events: auto !important;
+}
+
+/* ALL modal content should be above backdrop */
+.modal-content,
+div[class*="modal-content"],
+div[class*="Modal"] > div:not([class*="overlay"]) {
+  z-index: var(--z-modal-content) !important;
+  pointer-events: auto !important;
+}
+
+/* ==================== ALL INTERACTIVE ELEMENTS ==================== */
+
+/* Ensure ALL inputs, selects, textareas, and buttons are clickable */
+input,
+select,
+textarea,
+button,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"],
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"] {
+  position: relative !important;
+  z-index: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* When focused, bring to front */
+input:focus,
+select:focus,
+textarea:focus {
+  z-index: 2 !important;
+}
+
+/* Buttons should always be clickable */
+button,
+a[role="button"],
+div[role="button"],
+span[role="button"] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* Dropdowns should appear above other content */
+select option,
+datalist option,
+div[class*="dropdown"],
+div[class*="Dropdown"],
+ul[class*="dropdown"],
+div[role="listbox"],
+div[role="menu"] {
+  z-index: var(--z-dropdown) !important;
+  pointer-events: auto !important;
+}
+
+/* ==================== SPECIFIC MODAL PATTERNS ==================== */
+
+/* Glasses Prescription Modal */
+.glasses-modal-content {
+  z-index: var(--z-modal-content) !important;
+}
+
+.table-input,
+.verres-input,
+.verres-dropdown {
+  position: relative !important;
+  z-index: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Contact Lens Modal */
+div[style*="position: fixed"][style*="zIndex: 10000"] {
+  z-index: var(--z-modal-backdrop) !important;
+}
+
+/* ==================== FIXED POSITION CONTAINERS ==================== */
+
+/* Bottom bars, top bars with pointer-events: none need their children clickable */
+div[style*="pointer-events: none"] > *,
+div[style*="pointerEvents: none"] > * {
+  pointer-events: auto !important;
 }
 
 /* CRITICAL: Ensure inputs are never blocked */
