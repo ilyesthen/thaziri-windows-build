@@ -8,6 +8,7 @@ import registerOrdonnanceHandlers from './services/ordonnanceService'
 import { DatabaseServer } from './services/DatabaseServer'
 import { ServerDiscovery } from './services/ServerDiscovery'
 import { DatabaseClient } from './services/DatabaseClient'
+import * as DatabaseProxy from './services/DatabaseProxy'
 
 // Prevent system sleep
 let powerSaveBlockerId: number | null = null
@@ -135,9 +136,9 @@ function createWindow(): void {
 
 // This method will be called when Electron has finished initialization
 app.whenReady().then(async () => {
-  // Initialize database connection
+  // Initialize database proxy (routes to HTTP server if client mode, or local Prisma if admin mode)
   try {
-    await db.initializeDatabase()
+    await DatabaseProxy.initializeDatabaseProxy()
     
     // Register ordonnance IPC handlers after database is ready
     registerOrdonnanceHandlers()
@@ -1827,8 +1828,22 @@ ipcMain.handle('server:start', async () => {
         require('os').hostname()
       )
       
+      // Save admin mode configuration
+      const userDataPath = app.getPath('userData')
+      const configPath = path.join(userDataPath, 'database-config.json')
+      
+      fs.writeFileSync(configPath, JSON.stringify({
+        mode: 'admin',
+        serverUrl: `http://${result.ip}:${result.port}`,
+        startedAt: new Date().toISOString()
+      }, null, 2))
+      
+      // Set database proxy to admin mode
+      DatabaseProxy.setAdminMode()
+      
       console.log('✅ Database Server & Discovery started')
       console.log(`   Clients can connect to: http://${result.ip}:${result.port}`)
+      console.log('💾 Admin mode configured')
       
       return {
         success: true,
@@ -1921,6 +1936,23 @@ ipcMain.handle('server:connect', async (_, serverUrl: string) => {
     if (result.success) {
       console.log('✅ Connected to database server!')
       console.log('   Server info:', result.serverInfo)
+      
+      // Save client mode configuration
+      const userDataPath = app.getPath('userData')
+      const configPath = path.join(userDataPath, 'database-config.json')
+      
+      fs.writeFileSync(configPath, JSON.stringify({
+        mode: 'client',
+        serverUrl: serverUrl,
+        serverInfo: result.serverInfo,
+        connectedAt: new Date().toISOString()
+      }, null, 2))
+      
+      console.log('💾 Client configuration saved')
+      
+      // Set database proxy to use HTTP client
+      DatabaseProxy.setDatabaseClient(databaseClient)
+      console.log('✅ Database proxy set to client mode')
       
       return {
         success: true,
