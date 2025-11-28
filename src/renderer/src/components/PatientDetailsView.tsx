@@ -607,7 +607,7 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input"
                     value={leftEye.sv}
                     onChange={(e) => setLeftEye({ ...leftEye, sv: e.target.value })}
-                    placeholder="Sans correction"
+                    
                     readOnly
                   />
                 </div>
@@ -618,7 +618,7 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input"
                     value={leftEye.av}
                     onChange={(e) => setLeftEye({ ...leftEye, av: e.target.value })}
-                    placeholder="Avec correction"
+                    
                     readOnly
                   />
                 </div>
@@ -633,7 +633,7 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input"
                     value={leftEye.sphere}
                     onChange={(e) => setLeftEye({ ...leftEye, sphere: e.target.value })}
-                    placeholder="+0.75"
+                    
                     readOnly
                   />
                 </div>
@@ -644,7 +644,7 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input"
                     value={leftEye.cylinder}
                     onChange={(e) => setLeftEye({ ...leftEye, cylinder: e.target.value })}
-                    placeholder="-0.50"
+                    
                     readOnly
                   />
                 </div>
@@ -655,7 +655,7 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input"
                     value={leftEye.axis}
                     onChange={(e) => setLeftEye({ ...leftEye, axis: e.target.value })}
-                    placeholder="90"
+                    
                     readOnly
                   />
                 </div>
@@ -766,7 +766,7 @@ const PatientDetailsView: React.FC = () => {
                   className="eye-notes-textarea"
                   value={leftNotes}
                   onChange={(e) => setLeftNotes(e.target.value)}
-                  placeholder="Notes..."
+                  
                   readOnly
                 />
               </div>
@@ -830,7 +830,7 @@ const PatientDetailsView: React.FC = () => {
                   className="eye-notes-textarea"
                   value={leftConduite}
                   onChange={(e) => setLeftConduite(e.target.value)}
-                  placeholder="Conduite à tenir..."
+                  
                   style={{ minHeight: '120px', maxHeight: '180px' }}
                   readOnly
                 />
@@ -852,7 +852,7 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input"
                     value={rightEye.sv}
                     onChange={(e) => setRightEye({ ...rightEye, sv: e.target.value })}
-                    placeholder="Sans correction"
+                    
                     readOnly
                   />
                 </div>
@@ -863,7 +863,7 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input"
                     value={rightEye.av}
                     onChange={(e) => setRightEye({ ...rightEye, av: e.target.value })}
-                    placeholder="Avec correction"
+                    
                     readOnly
                   />
                 </div>
@@ -878,7 +878,7 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input"
                     value={rightEye.sphere}
                     onChange={(e) => setRightEye({ ...rightEye, sphere: e.target.value })}
-                    placeholder="+0.75"
+                    
                     readOnly
                   />
                 </div>
@@ -889,7 +889,7 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input"
                     value={rightEye.cylinder}
                     onChange={(e) => setRightEye({ ...rightEye, cylinder: e.target.value })}
-                    placeholder="-0.50"
+                    
                     readOnly
                   />
                 </div>
@@ -900,7 +900,7 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input"
                     value={rightEye.axis}
                     onChange={(e) => setRightEye({ ...rightEye, axis: e.target.value })}
-                    placeholder="90"
+                    
                     readOnly
                   />
                 </div>
@@ -1011,7 +1011,7 @@ const PatientDetailsView: React.FC = () => {
                   className="eye-notes-textarea"
                   value={rightNotes}
                   onChange={(e) => setRightNotes(e.target.value)}
-                  placeholder="Notes..."
+                  
                   readOnly
                 />
               </div>
@@ -1075,7 +1075,7 @@ const PatientDetailsView: React.FC = () => {
                   className="eye-notes-textarea"
                   value={rightDiag}
                   onChange={(e) => setRightDiag(e.target.value)}
-                  placeholder="Diagnostic..."
+                  
                   style={{ minHeight: '120px', maxHeight: '180px' }}
                   readOnly
                 />

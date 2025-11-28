@@ -41,7 +41,6 @@ const ContactLensModal: React.FC<ContactLensModalProps> = ({ isOpen, onClose, pa
 
   const [marque, setMarque] = useState('')
   const [type, setType] = useState(typeOptions[0])
-  const [showBrandDropdown, setShowBrandDropdown] = useState(false)
   const [activeWindow, setActiveWindow] = useState<'sphere' | 'torique'>('sphere')
   const [conversionTable, setConversionTable] = useState<ConversionData[]>([])
   const [showConversionTable, setShowConversionTable] = useState(false)
@@ -503,60 +502,28 @@ const ContactLensModal: React.FC<ContactLensModalProps> = ({ isOpen, onClose, pa
           </div>
 
           <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-            <div style={{ flex: 1, position: 'relative' }}>
+            <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Marque</label>
-              <input
-                type="text"
+              <select
                 value={marque}
                 onChange={(e) => setMarque(e.target.value)}
-                onFocus={() => setShowBrandDropdown(true)}
-                onBlur={() => setTimeout(() => setShowBrandDropdown(false), 200)}
                 style={{
                   width: '100%',
                   padding: '10px',
                   border: '2px solid #e0e0e0',
                   borderRadius: '8px',
                   fontSize: '14px',
+                  background: 'white',
                   position: 'relative',
                   zIndex: 1,
-                  pointerEvents: 'auto',
-                  background: 'white'
-                }}
-                placeholder="Sélectionnez ou saisissez une marque"
-              />
-              {showBrandDropdown && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  background: 'white',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '4px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  zIndex: 1000,
                   pointerEvents: 'auto'
-                }}>
-                  {brandOptions.map(brand => (
-                    <div
-                      key={brand}
-                      onClick={() => {
-                        setMarque(brand)
-                        setShowBrandDropdown(false)
-                      }}
-                      style={{
-                        padding: '10px',
-                        cursor: 'pointer',
-                        borderBottom: '1px solid #f0f0f0'
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.background = '#f5f5f5'}
-                      onMouseOut={(e) => e.currentTarget.style.background = 'white'}
-                    >
-                      {brand}
-                    </div>
-                  ))}
-                </div>
-              )}
+                }}
+              >
+                <option value="">Sélectionnez une marque...</option>
+                {brandOptions.map(brand => (
+                  <option key={brand} value={brand}>{brand}</option>
+                ))}
+              </select>
             </div>
 
             <div style={{ flex: 1 }}>
