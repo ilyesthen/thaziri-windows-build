@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import PatientTable from './PatientTable'
 import CreatePatientModal from './CreatePatientModal'
 import EditPatientModal from './EditPatientModal'
@@ -220,7 +220,6 @@ const PatientManagementLayout: React.FC = () => {
           const nurseQueueResult = await window.electronAPI.queue.getQueue(currentUser.id, currentUser.role)
           if (nurseQueueResult?.success) {
             const fromDoctorItems = (nurseQueueResult.queue || [])
-            console.log('Items from doctors:', fromDoctorItems)
             allQueueItems = [...allQueueItems, ...fromDoctorItems]
           }
         } else {
@@ -255,7 +254,6 @@ const PatientManagementLayout: React.FC = () => {
             // Categorize based on type
             if (item.actionType) {
               // This is from doctor to nurse (S, D, G, ODG)
-              console.log(`Adding doctor->nurse item to room ${roomId}:`, item)
               newRoomQueues[roomId].fromDoctor.push(item)
             } else if (item.isUrgent) {
               // This is an urgent patient
@@ -266,7 +264,6 @@ const PatientManagementLayout: React.FC = () => {
             }
           } else if (item.actionType && currentUser.role === 'nurse') {
             // For nurse, show all doctor->nurse items even without valid roomId
-            console.log('Doctor->nurse item without valid room, adding to room 1:', item)
             const defaultRoom = 1
             if (!seenItems.has(uniqueKey)) {
               seenItems.add(uniqueKey)
@@ -275,7 +272,6 @@ const PatientManagementLayout: React.FC = () => {
           }
         })
         
-        console.log('Final room queues:', newRoomQueues)
         setRoomQueues(newRoomQueues)
       } catch (error) {
         console.error('Error fetching room queues:', error)
@@ -1602,11 +1598,11 @@ const PatientManagementLayout: React.FC = () => {
         isOpen={isRoomQueueModalOpen}
         onClose={() => setIsRoomQueueModalOpen(false)}
         roomNumber={selectedRoomQueue || 1}
-        queueItems={selectedRoomQueue ? [
+        queueItems={React.useMemo(() => [
           ...(roomQueues[selectedRoomQueue]?.regular || []),
           ...(roomQueues[selectedRoomQueue]?.urgent || []),
           ...(roomQueues[selectedRoomQueue]?.fromDoctor || [])
-        ] : []}
+        ], [selectedRoomQueue, roomQueues])}
         onRefresh={fetchRoomQueues}
         initialFilter={selectedListFilter}
       />

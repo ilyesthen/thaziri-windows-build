@@ -8,6 +8,7 @@ import cors from 'cors'
 import { PrismaClient } from '@prisma/client'
 import { Server } from 'http'
 import os from 'os'
+import * as db from '../database'
 
 export class DatabaseServer {
   private app: express.Application
@@ -134,9 +135,8 @@ export class DatabaseServer {
           return res.status(400).json({ error: 'Missing functionName' })
         }
         
-        // Import database module and call the function
-        const db = require('../database')
-        const func = db[functionName]
+        // Get the database function
+        const func = (db as any)[functionName]
         
         if (!func || typeof func !== 'function') {
           console.error(`❌ Function ${functionName} not found in database module`)

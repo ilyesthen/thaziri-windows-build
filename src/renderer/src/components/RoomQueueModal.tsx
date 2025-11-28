@@ -151,21 +151,13 @@ const RoomQueueModal: React.FC<RoomQueueModalProps> = ({
 
   // Fetch ages when queue items change
   React.useEffect(() => {
-    console.log('RoomQueueModal: Queue items received:', queueItems)
-    if (queueItems.length > 0) {
-      console.log('First queue item keys:', Object.keys(queueItems[0]))
-      console.log('First queue item:', queueItems[0])
-    }
-    
     const fetchAges = async () => {
       const newAges: {[key: number]: string} = {}
       
       for (const item of queueItems) {
-        console.log('Processing queue item:', item)
         try {
           const patientResult = await (window.electronAPI as any).db.patients.getByCode(item.patientCode)
           if (patientResult?.success && patientResult.patient) {
-            console.log('Patient data:', patientResult.patient)
             if (patientResult.patient.dateOfBirth) {
               const birthDate = new Date(patientResult.patient.dateOfBirth)
               const today = new Date()

@@ -377,9 +377,38 @@ ipcMain.handle('auth:login', async (_event, email: string, password: string) => 
 
 ipcMain.handle('auth:getUsersForLogin', async () => {
   try {
-    return await dbRouter.getUsersForSelection()
-  } catch (error) {
-    console.error('Error getting users:', error)
+    console.log('\n🔐 ══════════════════════════════════════')
+    console.log('🔐 LOADING USERS FOR LOGIN PAGE...')
+    console.log('🔐 ══════════════════════════════════════')
+    
+    const users = await dbRouter.getUsersForSelection()
+    
+    console.log(`\n✅ SUCCESS! Loaded ${users.length} users`)
+    console.log('   Users:', users.map(u => u.username).join(', '))
+    console.log('🔐 ══════════════════════════════════════\n')
+    
+    return users
+  } catch (error: any) {
+    console.error('\n❌ ══════════════════════════════════════')
+    console.error('❌ FAILED TO LOAD USERS FOR LOGIN!')
+    console.error('❌ ══════════════════════════════════════')
+    console.error('   Error message:', error.message)
+    console.error('   Error stack:', error.stack)
+    console.error('\n💡 TROUBLESHOOTING:')
+    console.error('   1. Check if you are on a CLIENT PC')
+    console.error('   2. Check if ADMIN PC is running Thaziri')
+    console.error('   3. Check if you connected to admin server')
+    console.error('   4. Check DatabaseRouter initialization above')
+    console.error('❌ ══════════════════════════════════════\n')
+    
+    // Send user-friendly error notification
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('show-error', {
+        title: '❌ Impossible de charger les utilisateurs',
+        message: `Erreur: ${error.message}\n\nSi vous êtes sur un PC Client:\n- Vérifiez que le PC Admin est allumé\n- Vérifiez que Thaziri est ouvert sur le PC Admin\n- Essayez de reconnecter au serveur`
+      })
+    }
+    
     throw error
   }
 })
@@ -1983,19 +2012,32 @@ ipcMain.handle('server:discover', async () => {
 // Connect to Server (Client PC)
 ipcMain.handle('server:connect', async (_, serverUrl: string) => {
   try {
-    console.log(`🔌 Connecting to server: ${serverUrl}`)
+    console.log('\n╔═══════════════════════════════════════════════╗')
+    console.log('║  🔌 MANUAL SERVER CONNECTION STARTING...     ║')
+    console.log('╚═══════════════════════════════════════════════╝')
+    console.log(`\n📋 STEP 1: Creating DatabaseClient`)
+    console.log(`   Server URL: ${serverUrl}`)
     
     databaseClient = new DatabaseClient(serverUrl)
+    console.log('✅ STEP 1 COMPLETE: DatabaseClient created')
+    
+    console.log(`\n📋 STEP 2: Testing connection to admin server...`)
     const result = await databaseClient.testConnection()
+    console.log('   Test result:', result)
     
     if (result.success) {
-      console.log('✅ Connected to database server!')
+      console.log('\n✅ STEP 2 COMPLETE: Connection successful!')
       console.log('   Server info:', result.serverInfo)
+      console.log('   Computer name:', result.serverInfo.computerName)
+      console.log('   Server version:', result.serverInfo.version)
       
-      // IMPORTANT: Set the database client in the router
-      // This makes ALL database calls go through HTTP to the server
+      console.log(`\n📋 STEP 3: Registering client in DatabaseRouter...`)
       dbRouter.setDatabaseClient(databaseClient)
-      console.log('🔀 Database Router switched to CLIENT MODE')
+      console.log('✅ STEP 3 COMPLETE: Router switched to CLIENT MODE')
+      console.log('   All database operations will now use HTTP!')
+      
+      console.log('\n🎉 CONNECTION SUCCESSFUL!')
+      console.log('╚═══════════════════════════════════════════════╝\n')
       
       return {
         success: true,
@@ -2004,9 +2046,15 @@ ipcMain.handle('server:connect', async (_, serverUrl: string) => {
       }
     }
     
+    console.error('\n❌ STEP 2 FAILED: Connection test failed')
+    console.error('   Error:', result.error)
+    console.error('╚═══════════════════════════════════════════════╝\n')
     return result
   } catch (error: any) {
-    console.error('❌ Connection error:', error)
+    console.error('\n❌ CONNECTION EXCEPTION!')
+    console.error('   Error message:', error.message)
+    console.error('   Error stack:', error.stack)
+    console.error('╚═══════════════════════════════════════════════╝\n')
     return {
       success: false,
       error: error.message

@@ -23,21 +23,64 @@ let currentMode: DatabaseMode = null
  * Initialize the database router by detecting the mode
  */
 export async function initializeDatabaseRouter(): Promise<void> {
+  console.log('\n═══════════════════════════════════════════════')
+  console.log('🔀 DATABASE ROUTER INITIALIZATION STARTING...')
+  console.log('═══════════════════════════════════════════════')
+  
+  console.log('\n📋 STEP 1: Detecting mode (admin or client)...')
   const mode = await detectMode()
   currentMode = mode
-  
-  console.log('🔀 Database Router initialized in mode:', mode)
+  console.log(`✅ STEP 1 COMPLETE: Mode detected = "${mode}"`)
   
   if (mode === 'client') {
-    // Load client configuration
+    console.log('\n📋 STEP 2: CLIENT MODE - Loading saved server configuration...')
     const config = await loadClientConfig()
+    
     if (config && config.serverUrl) {
+      console.log(`✅ STEP 2 COMPLETE: Found saved server URL: ${config.serverUrl}`)
+      
+      console.log('\n📋 STEP 3: Creating DatabaseClient instance...')
       databaseClient = new DatabaseClient(config.serverUrl)
-      console.log('  → Connected to server:', config.serverUrl)
+      console.log('✅ STEP 3 COMPLETE: DatabaseClient created')
+      
+      console.log('\n📋 STEP 4: Testing connection to admin server...')
+      try {
+        const testResult = await databaseClient.testConnection()
+        console.log('   Server response:', testResult)
+        
+        if (testResult.success) {
+          console.log('\n✅ STEP 4 COMPLETE: Auto-connected to server successfully!')
+          console.log('   Server info:', testResult.serverInfo)
+          console.log('\n🎉 CLIENT MODE READY - All database calls will use HTTP!')
+        } else {
+          console.error('\n❌ STEP 4 FAILED: Auto-connect failed')
+          console.error('   Error:', testResult.error)
+          console.error('\n⚠️ CLEARING databaseClient - will show error on first DB call')
+          databaseClient = null
+        }
+      } catch (error: any) {
+        console.error('\n❌ STEP 4 EXCEPTION: Auto-connect threw error')
+        console.error('   Error message:', error.message)
+        console.error('   Error stack:', error.stack)
+        console.error('\n⚠️ CLEARING databaseClient - will show error on first DB call')
+        databaseClient = null
+      }
     } else {
-      console.warn('  ⚠️ Client mode but no server URL configured')
+      console.warn('\n⚠️ STEP 2 FAILED: Client mode but no server URL saved')
+      console.warn('   Config loaded:', config)
+      console.warn('   User will need to manually connect to server')
     }
+  } else if (mode === 'admin') {
+    console.log('\n✅ ADMIN MODE - Database calls will use local Prisma')
+  } else {
+    console.log('\n⚠️ MODE IS NULL - Setup not complete')
   }
+  
+  console.log('\n═══════════════════════════════════════════════')
+  console.log('🔀 DATABASE ROUTER INITIALIZATION COMPLETE')
+  console.log('   Final mode:', currentMode)
+  console.log('   Has databaseClient:', databaseClient !== null)
+  console.log('═══════════════════════════════════════════════\n')
 }
 
 /**
@@ -394,37 +437,92 @@ export const getUnreadMessageCount = (userId: number, roomId?: string) => execut
  * Execute a database function - routes to HTTP client or direct call
  */
 async function executeDbFunction(functionName: string, ...args: any[]): Promise<any> {
-  console.log(`🔀 executeDbFunction: ${functionName}`)
+  console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+  console.log(`🔀 DB FUNCTION CALL: ${functionName}`)
+  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+  console.log(`📊 CURRENT STATE:`)
   console.log(`   Mode: ${currentMode}`)
-  console.log(`   Has client: ${databaseClient !== null}`)
+  console.log(`   Has databaseClient: ${databaseClient !== null}`)
+  console.log(`   Arguments:`, args.length > 0 ? args : 'none')
   
-  if (currentMode === 'client' && databaseClient) {
+  // CRITICAL: Client mode MUST use HTTP, never direct database calls
+  if (currentMode === 'client') {
+    console.log(`\n🌐 CLIENT MODE DETECTED - Must use HTTP!`)
+    
+    if (!databaseClient) {
+      console.error(`\n❌ FATAL ERROR: Client mode but databaseClient is NULL!`)
+      console.error(`   This means:`)
+      console.error(`   1. App is in client mode (setup-complete says client)`)
+      console.error(`   2. BUT auto-connect failed on startup`)
+      console.error(`   3. OR user hasn't connected to admin server yet`)
+      console.error(`\n💡 SOLUTION: User needs to:`)
+      console.error(`   - Check admin PC is running Thaziri`)
+      console.error(`   - Click "Connect to Server" and select admin PC`)
+      throw new Error(`CLIENT MODE ERROR: Database client not initialized. Please connect to the admin server first.`)
+    }
+    
     // Client mode: Call via HTTP
-    console.log(`   ✅ Using CLIENT MODE for ${functionName}`)
+    console.log(`\n✅ DatabaseClient is ready - proceeding with HTTP call`)
+    console.log(`\n📡 STEP 1: Sending HTTP POST to admin server...`)
+    console.log(`   Endpoint: /db/execute`)
+    console.log(`   Function: ${functionName}`)
+    console.log(`   Arguments:`, args)
+    
     try {
-      console.log(`   📡 Calling HTTP endpoint: /db/execute with args:`, args)
       const result = await databaseClient.executeDatabaseFunction(functionName, ...args)
-      console.log(`   📥 HTTP response:`, result)
+      
+      console.log(`\n📥 STEP 2: Received response from admin server`)
+      console.log(`   Success: ${result.success}`)
+      if (result.success) {
+        console.log(`   Data type: ${typeof result.data}`)
+        if (Array.isArray(result.data)) {
+          console.log(`   Array length: ${result.data.length}`)
+        }
+      } else {
+        console.log(`   Error: ${result.error}`)
+      }
       
       if (result.success) {
-        console.log(`   ✅ Success! Returning data`)
+        console.log(`\n✅ SUCCESS! Returning data to caller`)
+        console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`)
         return result.data
       }
+      
+      console.error(`\n❌ Server returned error:`, result.error)
       throw new Error(result.error || 'Database function failed')
     } catch (error: any) {
-      console.error(`❌ Client mode error calling ${functionName}:`, error.message)
+      console.error(`\n❌ HTTP CALL FAILED!`)
+      console.error(`   Function: ${functionName}`)
+      console.error(`   Error message: ${error.message}`)
+      console.error(`   Error type: ${error.constructor.name}`)
+      if (error.response) {
+        console.error(`   HTTP Status: ${error.response.status}`)
+        console.error(`   Response data:`, error.response.data)
+      }
       console.error(`   Full error:`, error)
+      console.error(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`)
       throw error
     }
   }
   
   // Admin mode: Direct call
-  console.log(`   ✅ Using ADMIN MODE for ${functionName}`)
+  console.log(`\n💻 ADMIN MODE DETECTED - Using direct Prisma calls`)
+  console.log(`\n📋 STEP 1: Looking up function in database module...`)
   const func = (db as any)[functionName]
+  
   if (!func) {
+    console.error(`\n❌ FUNCTION NOT FOUND!`)
+    console.error(`   Function name: ${functionName}`)
+    console.error(`   Available functions in db module:`, Object.keys(db).join(', '))
+    console.error(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`)
     throw new Error(`Function ${functionName} not found in database module`)
   }
-  return await func(...args)
+  
+  console.log(`✅ Function found! Calling with ${args.length} arguments...`)
+  const result = await func(...args)
+  console.log(`✅ SUCCESS! Function executed`)
+  console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`)
+  return result
 }
 
 /**
