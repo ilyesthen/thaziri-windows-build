@@ -2102,13 +2102,18 @@ ipcMain.handle('server:testConnection', async (_, serverUrl: string) => {
   }
 })
 
+// Note: Medicine, Ordonnance, Quantity, and CompteRendu IPC handlers
+// are registered in ordonnanceService.ts via registerOrdonnanceHandlers()
+
 ipcMain.handle('print:pdf', async (_, pdfBase64: string, paperSize: 'A4' | 'A5' = 'A4') => {
   try {
-    console.log(`🖨️ Printing PDF silently with paper size: ${paperSize}`)
+    console.log(`🖨️ Opening print dialog with default paper size: ${paperSize}`)
     
-    // Create hidden window for printing
+    // Create visible window for printing with print dialog
     const printWindow = new BrowserWindow({
-      show: false,
+      show: true, // Show window so user can see what's being printed
+      width: 800,
+      height: 600,
       webPreferences: {
         nodeIntegration: false
       }
@@ -2120,27 +2125,34 @@ ipcMain.handle('print:pdf', async (_, pdfBase64: string, paperSize: 'A4' | 'A5' 
     // Load PDF
     await printWindow.loadURL(pdfDataUrl)
     
-    // Print settings
+    // Wait a moment for PDF to render
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    // Print settings (with dialog shown)
     const printOptions: any = {
-      silent: true, // Print without dialog
+      silent: false, // SHOW PRINT DIALOG - user can select printer, paper size, etc.
       printBackground: true,
       color: true,
       margins: {
         marginType: 'none' as const
       },
-      pageSize: paperSize === 'A5' ? { width: 148000, height: 210000 } : 'A4' // A5 in microns or A4
+      pageSize: paperSize === 'A5' ? { width: 148000, height: 210000 } : 'A4' // Default paper size suggestion
     }
     
-    // Print
+    // Print with dialog
     printWindow.webContents.print(printOptions, (success, failureReason) => {
       if (success) {
-        console.log('✅ Print successful')
+        console.log('✅ Print dialog opened / Print completed')
       } else {
         console.error('❌ Print failed:', failureReason)
       }
       
-      // Close print window
-      printWindow.close()
+      // Close print window after a delay (user might still be in print dialog)
+      setTimeout(() => {
+        if (!printWindow.isDestroyed()) {
+          printWindow.close()
+        }
+      }, 1000)
     })
     
     return { success: true }

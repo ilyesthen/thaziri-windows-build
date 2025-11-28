@@ -9,6 +9,7 @@ import { PrismaClient } from '@prisma/client'
 import { Server } from 'http'
 import os from 'os'
 import * as db from '../database'
+import { getPrismaClient } from '../database'
 
 export class DatabaseServer {
   private app: express.Application
@@ -165,6 +166,103 @@ export class DatabaseServer {
           error: error.message,
           details: error.toString()
         })
+      }
+    })
+    
+    // ==================== ORDONNANCE-RELATED PRISMA ENDPOINTS ====================
+    // These endpoints allow Client PCs to access ordonnance data via Prisma
+    
+    // Medicines
+    this.app.get('/api/medicines', async (req, res) => {
+      try {
+        const prisma = getPrismaClient()
+        const medicines = await prisma.medicine.findMany({
+          orderBy: [{ actualCount: 'desc' }, { nbpres: 'desc' }]
+        })
+        res.json({ success: true, data: medicines })
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message })
+      }
+    })
+    
+    // Quantities
+    this.app.get('/api/quantities', async (req, res) => {
+      try {
+        const prisma = getPrismaClient()
+        const quantities = await prisma.quantity.findMany({
+          orderBy: { id: 'asc' }
+        })
+        res.json({ success: true, data: quantities })
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message })
+      }
+    })
+    
+    // Comptes Rendus
+    this.app.get('/api/comptesRendus', async (req, res) => {
+      try {
+        const prisma = getPrismaClient()
+        const comptesRendus = await prisma.compteRendu.findMany({
+          orderBy: { codeCompte: 'asc' }
+        })
+        res.json({ success: true, data: comptesRendus })
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message })
+      }
+    })
+    
+    // Ordonnances by patient
+    this.app.get('/api/ordonnances/:patientCode', async (req, res) => {
+      try {
+        const prisma = getPrismaClient()
+        const patientCode = parseInt(req.params.patientCode)
+        const ordonnances = await prisma.ordonnance.findMany({
+          where: { patientCode },
+          orderBy: [{ seq: 'desc' }, { id: 'desc' }]
+        })
+        res.json({ success: true, data: ordonnances })
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message })
+      }
+    })
+    
+    // Create ordonnance
+    this.app.post('/api/ordonnances', async (req, res) => {
+      try {
+        const prisma = getPrismaClient()
+        const ordonnance = await prisma.ordonnance.create({
+          data: req.body
+        })
+        res.json({ success: true, data: ordonnance })
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message })
+      }
+    })
+    
+    // Update ordonnance
+    this.app.put('/api/ordonnances/:id', async (req, res) => {
+      try {
+        const prisma = getPrismaClient()
+        const id = parseInt(req.params.id)
+        const ordonnance = await prisma.ordonnance.update({
+          where: { id },
+          data: req.body
+        })
+        res.json({ success: true, data: ordonnance })
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message })
+      }
+    })
+    
+    // Delete ordonnance
+    this.app.delete('/api/ordonnances/:id', async (req, res) => {
+      try {
+        const prisma = getPrismaClient()
+        const id = parseInt(req.params.id)
+        await prisma.ordonnance.delete({ where: { id } })
+        res.json({ success: true })
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message })
       }
     })
   }

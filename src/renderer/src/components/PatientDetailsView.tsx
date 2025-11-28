@@ -671,7 +671,7 @@ const PatientDetailsView: React.FC = () => {
                 </div>
               </div>
 
-              {/* K1, K2, Addition */}
+              {/* K1, K2 - Right Eye */}
               <div className="eye-fields-horizontal" style={{ marginTop: '12px' }}>
                 <div className="eye-field-group">
                   <label>K1</label>
@@ -690,16 +690,6 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input field-k2"
                     value={leftEye.k2}
                     onChange={(e) => setLeftEye({ ...leftEye, k2: e.target.value })}
-                    readOnly
-                  />
-                </div>
-                <div className="eye-field-group">
-                  <label>Addition</label>
-                  <input
-                    type="text"
-                    className="eye-input field-addition"
-                    value={addition}
-                    onChange={(e) => setAddition(e.target.value)}
                     readOnly
                   />
                 </div>
@@ -916,7 +906,7 @@ const PatientDetailsView: React.FC = () => {
                 </div>
               </div>
 
-              {/* K1, K2, Addition */}
+              {/* K1, K2, ADDITION - Left Eye */}
               <div className="eye-fields-horizontal" style={{ marginTop: '12px' }}>
                 <div className="eye-field-group">
                   <label>K1</label>
@@ -939,7 +929,7 @@ const PatientDetailsView: React.FC = () => {
                   />
                 </div>
                 <div className="eye-field-group">
-                  <label>Addition</label>
+                  <label>ADDITION</label>
                   <input
                     type="text"
                     className="eye-input field-addition"
@@ -950,7 +940,7 @@ const PatientDetailsView: React.FC = () => {
                 </div>
               </div>
 
-              {/* R1, R2, R0, PACHY, T.O.C */}
+              {/* R1, R2, R0, PACHY, T.O.C, D.I.P - Left Eye */}
               <div className="eye-fields-horizontal" style={{ marginTop: '12px' }}>
                 <div className="eye-field-group">
                   <label>R1</label>
@@ -999,6 +989,15 @@ const PatientDetailsView: React.FC = () => {
                     className="eye-input field-toc"
                     value={rightEye.toc}
                     onChange={(e) => setRightEye({ ...rightEye, toc: e.target.value })}
+                    readOnly
+                  />
+                </div>
+                <div className="eye-field-group">
+                  <label>D.I.P</label>
+                  <input
+                    type="text"
+                    className="eye-input field-dip"
+                    value={rightEye.dip || ''}
                     readOnly
                   />
                 </div>
@@ -1269,312 +1268,201 @@ const PatientDetailsView: React.FC = () => {
         </div>
       )}
 
-      {/* Bottom Bar with Patient Action Buttons */}
-      <div style={{ 
-        position: 'fixed', 
-        bottom: 0, 
-        left: 0, 
-        right: 0, 
-        background: '#2A6484', // Same color as top bar
-        padding: '12px',
-        zIndex: 'var(--z-base)',
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '16px',
-        pointerEvents: 'none', // Don't block clicks above
-        boxShadow: '0 -2px 10px rgba(0,0,0,0.1)'
-      }}>
-        {/* S Button */}
-        <button 
-          style={{
-            background: '#9c27b0', // Purple
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '12px 20px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            minWidth: '60px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease',
-            pointerEvents: 'auto' // Re-enable clicks for button
-          }}
-          title="Dilatation sous Skiacol"
-          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          onClick={async () => {
-            if (!patient.departmentCode || !user) {
-              alert('❌ Code patient ou utilisateur introuvable')
-              return
-            }
-            
-            const payload = {
-              patientCode: patient.departmentCode,
-              patientName: `${patient.firstName} ${patient.lastName}`.trim(),
-              fromUserId: user.id,
-              fromUserName: user.name || user.email,
-              fromUserRole: user.role,
-              actionType: 'S',
-              actionLabel: 'Dilatation sous Skiacol'
-            }
-            
-            const result = await window.electronAPI.queue.sendToNurse(payload)
-            if (result?.success) {
-              alert('✅ Patient envoyé à l\'infirmière pour Dilatation sous Skiacol')
-            } else {
-              alert(`❌ Erreur: ${result?.error || 'Impossible d\'envoyer le patient'}`)
-            }
-          }}
-        >
-          S
-        </button>
+      {/* Bottom Bar with All Action Buttons - NewVisitPage Style */}
+      <div className="messaging-bottom-bar">
+        <div className="bottom-bar-container">
+          {/* Create New Visit Button */}
+          <button 
+            className="bottom-bar-btn save-btn"
+            onClick={handleCreateNewVisit}
+            title="Créer Nouvelle Visite"
+          >
+            <span className="btn-icon">➕</span>
+            <span className="btn-text">Nouvelle Visite</span>
+          </button>
 
-        {/* D Button */}
-        <button 
-          style={{
-            background: '#2196f3', // Blue
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '12px 20px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            minWidth: '60px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease',
-            pointerEvents: 'auto'
-          }}
-          title="Dilatation OD"
-          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          onClick={async () => {
-            if (!patient.departmentCode || !user) {
-              alert('❌ Code patient ou utilisateur introuvable')
-              return
-            }
-            
-            const payload = {
-              patientCode: patient.departmentCode,
-              patientName: `${patient.firstName} ${patient.lastName}`.trim(),
-              fromUserId: user.id,
-              fromUserName: user.name || user.email,
-              fromUserRole: user.role,
-              actionType: 'D',
-              actionLabel: 'Dilatation OD'
-            }
-            
-            const result = await window.electronAPI.queue.sendToNurse(payload)
-            if (result?.success) {
-              alert('✅ Patient envoyé à l\'infirmière pour Dilatation OD')
-            } else {
-              alert(`❌ Erreur: ${result?.error || 'Impossible d\'envoyer le patient'}`)
-            }
-          }}
-        >
-          D
-        </button>
+          {/* Ordonnance Button */}
+          {patient && (
+            <button 
+              className="bottom-bar-btn ordonnance-btn"
+              onClick={() => {
+                navigate('/ordonnance', { 
+                  state: { 
+                    patient: {
+                      ...patient,
+                      nom: patient.lastName,
+                      prenom: patient.firstName,
+                      departmentCode: patient.departmentCode
+                    }
+                  } 
+                })
+              }}
+              title="Créer une ordonnance"
+              style={{ background: '#673ab7' }}
+            >
+              <span className="btn-icon">📝</span>
+              <span className="btn-text">Ordonnance</span>
+            </button>
+          )}
 
-        {/* G Button */}
-        <button 
-          style={{
-            background: '#ff9800', // Orange
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '12px 20px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            pointerEvents: 'auto',
-            cursor: 'pointer',
-            minWidth: '60px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease'
-          }}
-          title="Dilatation OG"
-          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          onClick={async () => {
-            if (!patient.departmentCode || !user) {
-              alert('❌ Code patient ou utilisateur introuvable')
-              return
-            }
-            
-            const payload = {
-              patientCode: patient.departmentCode,
-              patientName: `${patient.firstName} ${patient.lastName}`.trim(),
-              fromUserId: user.id,
-              fromUserName: user.name || user.email,
-              fromUserRole: user.role,
-              actionType: 'G',
-              actionLabel: 'Dilatation OG'
-            }
-            
-            const result = await window.electronAPI.queue.sendToNurse(payload)
-            if (result?.success) {
-              alert('✅ Patient envoyé à l\'infirmière pour Dilatation OG')
-            } else {
-              alert(`❌ Erreur: ${result?.error || 'Impossible d\'envoyer le patient'}`)
-            }
-          }}
-        >
-          G
-        </button>
+          {/* Send Message Button */}
+          <button 
+            className="bottom-bar-btn send-btn"
+            onClick={() => setIsSendModalOpen(true)}
+            title="Envoyer un message"
+          >
+            <span className="btn-icon">📨</span>
+            <span className="btn-text">Envoyer un message</span>
+          </button>
 
-        {/* ODG Button */}
-        <button 
-          style={{
-            background: '#f44336', // Red
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '12px 20px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            minWidth: '60px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease',
-            pointerEvents: 'auto'
-          }}
-          title="Dilatation ODG"
-          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          onClick={async () => {
-            if (!patient.departmentCode || !user) {
-              alert('❌ Code patient ou utilisateur introuvable')
-              return
-            }
-            
-            const payload = {
-              patientCode: patient.departmentCode,
-              patientName: `${patient.firstName} ${patient.lastName}`.trim(),
-              fromUserId: user.id,
-              fromUserName: user.name || user.email,
-              fromUserRole: user.role,
-              actionType: 'ODG',
-              actionLabel: 'Dilatation ODG'
-            }
-            
-            const result = await window.electronAPI.queue.sendToNurse(payload)
-            if (result?.success) {
-              alert('✅ Patient envoyé à l\'infirmière pour Dilatation ODG')
-            } else {
-              alert(`❌ Erreur: ${result?.error || 'Impossible d\'envoyer le patient'}`)
-            }
-          }}
-        >
-          ODG
-        </button>
-        
-        {/* Send Message Button */}
-        <button 
-          style={{
-            background: '#4CAF50', // Green
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '12px 20px',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            minWidth: '140px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease',
-            pointerEvents: 'auto'
-          }}
-          title="Envoyer un message"
-          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          onClick={() => setIsSendModalOpen(true)}
-        >
-          📨 Envoyer Message
-        </button>
-        
-        {/* Received Messages Button */}
-        <button 
-          style={{
-            background: '#2196F3', // Blue
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '12px 20px',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            minWidth: '140px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease',
-            pointerEvents: 'auto'
-          }}
-          title={`Messages Reçus - ${patient?.firstName || ''} ${patient?.lastName || ''}`}
-          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          onClick={() => setIsReceivedMessagesOpen(true)}
-        >
-          📬 Messages Reçus
-        </button>
-        
-        {/* Payment History Button */}
-        <button 
-          style={{
-            background: '#FF9800', // Orange
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '12px 20px',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            minWidth: '140px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease',
-            pointerEvents: 'auto'
-          }}
-          title="Historique des Paiements"
-          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          onClick={() => setShowPaymentHistory(!showPaymentHistory)}
-        >
-          💰 Historique Paiements
-        </button>
-        
-        {/* Ordonnance Button - NAVIGATES TO PAGE */}
-        <button 
-          style={{
-            background: '#3F51B5', // Blue
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '12px 20px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            cursor: 'pointer',
-            minWidth: '60px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease',
-            pointerEvents: 'auto'
-          }}
-          title="Ordonnance"
-          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-          onClick={() => {
-            // Navigate TO ordonnance page with patient data
-            navigate('/ordonnance', { 
-              state: { 
-                patient: {
-                  ...patient,
-                  nom: patient.lastName,
-                  prenom: patient.firstName,
-                  departmentCode: patient.departmentCode
-                }
-              } 
-            })
-          }}
-        >
-          📝
-        </button>
+          {/* Received Messages Button */}
+          <button 
+            className="bottom-bar-btn received-btn"
+            onClick={() => setIsReceivedMessagesOpen(true)}
+            title="Messages reçus"
+          >
+            <span className="btn-icon">📬</span>
+            <span className="btn-text">Messages Reçus</span>
+          </button>
+
+          {/* Payment History Button */}
+          <button 
+            className="bottom-bar-btn"
+            onClick={() => setShowPaymentHistory(!showPaymentHistory)}
+            title="Historique des Paiements"
+            style={{ background: '#FF9800' }}
+          >
+            <span className="btn-icon">💰</span>
+            <span className="btn-text">Historique Paiements</span>
+          </button>
+
+          {/* Patient Action Buttons - Dilatation */}
+          {patient && (
+            <>
+              <div className="bottom-bar-divider" />
+              <button 
+                className="bottom-bar-btn action-btn"
+                onClick={async () => {
+                  if (!patient.departmentCode || !user) {
+                    alert('❌ Code patient ou utilisateur introuvable')
+                    return
+                  }
+                  
+                  const payload = {
+                    patientCode: patient.departmentCode,
+                    patientName: `${patient.firstName} ${patient.lastName}`.trim(),
+                    fromUserId: user.id,
+                    fromUserName: user.name || user.email,
+                    fromUserRole: user.role,
+                    actionType: 'S',
+                    actionLabel: 'Dilatation sous Skiacol'
+                  }
+                  
+                  const result = await window.electronAPI.queue.sendToNurse(payload)
+                  if (result?.success) {
+                    alert('✅ Patient envoyé à l\'infirmière pour Dilatation sous Skiacol')
+                  } else {
+                    alert(`❌ Erreur: ${result?.error || 'Impossible d\'envoyer le patient'}`)
+                  }
+                }}
+                title="Dilatation sous Skiacol"
+                style={{ background: '#9c27b0' }}
+              >
+                <span className="btn-text">S</span>
+              </button>
+              <button 
+                className="bottom-bar-btn action-btn"
+                onClick={async () => {
+                  if (!patient.departmentCode || !user) {
+                    alert('❌ Code patient ou utilisateur introuvable')
+                    return
+                  }
+                  
+                  const payload = {
+                    patientCode: patient.departmentCode,
+                    patientName: `${patient.firstName} ${patient.lastName}`.trim(),
+                    fromUserId: user.id,
+                    fromUserName: user.name || user.email,
+                    fromUserRole: user.role,
+                    actionType: 'D',
+                    actionLabel: 'Dilatation OD'
+                  }
+                  
+                  const result = await window.electronAPI.queue.sendToNurse(payload)
+                  if (result?.success) {
+                    alert('✅ Patient envoyé à l\'infirmière pour Dilatation OD')
+                  } else {
+                    alert(`❌ Erreur: ${result?.error || 'Impossible d\'envoyer le patient'}`)
+                  }
+                }}
+                title="Dilatation OD (Œil Droit)"
+                style={{ background: '#2196f3' }}
+              >
+                <span className="btn-text">D</span>
+              </button>
+              <button 
+                className="bottom-bar-btn action-btn"
+                onClick={async () => {
+                  if (!patient.departmentCode || !user) {
+                    alert('❌ Code patient ou utilisateur introuvable')
+                    return
+                  }
+                  
+                  const payload = {
+                    patientCode: patient.departmentCode,
+                    patientName: `${patient.firstName} ${patient.lastName}`.trim(),
+                    fromUserId: user.id,
+                    fromUserName: user.name || user.email,
+                    fromUserRole: user.role,
+                    actionType: 'G',
+                    actionLabel: 'Dilatation OG'
+                  }
+                  
+                  const result = await window.electronAPI.queue.sendToNurse(payload)
+                  if (result?.success) {
+                    alert('✅ Patient envoyé à l\'infirmière pour Dilatation OG')
+                  } else {
+                    alert(`❌ Erreur: ${result?.error || 'Impossible d\'envoyer le patient'}`)
+                  }
+                }}
+                title="Dilatation OG (Œil Gauche)"
+                style={{ background: '#ff9800' }}
+              >
+                <span className="btn-text">G</span>
+              </button>
+              <button 
+                className="bottom-bar-btn action-btn"
+                onClick={async () => {
+                  if (!patient.departmentCode || !user) {
+                    alert('❌ Code patient ou utilisateur introuvable')
+                    return
+                  }
+                  
+                  const payload = {
+                    patientCode: patient.departmentCode,
+                    patientName: `${patient.firstName} ${patient.lastName}`.trim(),
+                    fromUserId: user.id,
+                    fromUserName: user.name || user.email,
+                    fromUserRole: user.role,
+                    actionType: 'ODG',
+                    actionLabel: 'Dilatation ODG'
+                  }
+                  
+                  const result = await window.electronAPI.queue.sendToNurse(payload)
+                  if (result?.success) {
+                    alert('✅ Patient envoyé à l\'infirmière pour Dilatation ODG')
+                  } else {
+                    alert(`❌ Erreur: ${result?.error || 'Impossible d\'envoyer le patient'}`)
+                  }
+                }}
+                title="Dilatation ODG"
+                style={{ background: '#f44336' }}
+              >
+                <span className="btn-text">ODG</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )
