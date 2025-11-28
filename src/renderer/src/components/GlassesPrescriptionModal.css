@@ -182,16 +182,20 @@
   padding: 8px;
   border: 1px solid #F1F1F1;
   border-radius: 4px;
-  font-size: 15px;
-  text-align: center;
-  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+  font-size: 16px;
+  color: #202020;
+  background-color: white;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
 }
 
 .table-input:focus {
   outline: none;
   border-color: #429898;
   box-shadow: 0 0 0 2px rgba(66, 152, 152, 0.1);
+  z-index: 2;
 }
 
 /* Read-only near vision inputs */
@@ -270,16 +274,20 @@
   padding: 12px;
   border: 2px solid #F1F1F1;
   border-radius: 8px;
-  font-size: 17px;
-  transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+  font-size: 16px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background-color: white;
   color: #202020;
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
 }
 
 .verres-input:focus {
   outline: none;
   border-color: #429898;
   box-shadow: 0 0 0 3px rgba(66, 152, 152, 0.1);
+  z-index: 2;
 }
 
 .verres-input::placeholder {

@@ -5,12 +5,22 @@ import * as db from './database'
 import NetworkDiscoveryService from './services/NetworkDiscoveryService'
 import MessagingService from './services/MessagingService'
 import registerOrdonnanceHandlers from './services/ordonnanceService'
+import { DatabaseServer } from './services/DatabaseServer'
+import { ServerDiscovery } from './services/ServerDiscovery'
+import { DatabaseClient } from './services/DatabaseClient'
 
 // Prevent system sleep
 let powerSaveBlockerId: number | null = null
 
 // Track current logged-in user for cleanup
 let currentUserId: number | null = null
+
+// Database Server (for Admin PC)
+let databaseServer: DatabaseServer | null = null
+let serverDiscovery: ServerDiscovery | null = null
+
+// Database Client (for Client PC)
+let databaseClient: DatabaseClient | null = null
 
 // Lazy import for electron-store to avoid initialization issues
 let store: any = null
@@ -1783,7 +1793,156 @@ ipcMain.handle('dialog:selectFile', async (_, options: any) => {
 })
 
 // Print PDF silently with specific paper size
-ipcMain.handle('print:pdf', async (_, pdfBase64: string, paperSize: 'A4' | 'A5') => {
+// ==================== PROFESSIONAL DATABASE SERVER ====================
+
+// Start Database Server (Admin PC only)
+ipcMain.handle('server:start', async () => {
+  try {
+    if (databaseServer) {
+      return { success: false, error: 'Server already running' }
+    }
+
+    // Get Prisma client from db module
+    const prisma = db.getPrismaClient()
+    
+    // Create and start server
+    databaseServer = new DatabaseServer(prisma)
+    const result = await databaseServer.start()
+    
+    if (result.success) {
+      // Start discovery responder
+      serverDiscovery = new ServerDiscovery()
+      await serverDiscovery.startBroadcastResponder(
+        result.port!,
+        require('os').hostname()
+      )
+      
+      console.log('✅ Database Server & Discovery started')
+      console.log(`   Clients can connect to: http://${result.ip}:${result.port}`)
+      
+      return {
+        success: true,
+        ip: result.ip,
+        port: result.port,
+        url: `http://${result.ip}:${result.port}`
+      }
+    }
+    
+    return result
+  } catch (error: any) {
+    console.error('❌ Failed to start server:', error)
+    return { success: false, error: error.message }
+  }
+})
+
+// Stop Database Server
+ipcMain.handle('server:stop', async () => {
+  try {
+    if (databaseServer) {
+      await databaseServer.stop()
+      databaseServer = null
+    }
+    
+    if (serverDiscovery) {
+      serverDiscovery.stop()
+      serverDiscovery = null
+    }
+    
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+})
+
+// Get Server Status
+ipcMain.handle('server:status', async () => {
+  if (databaseServer) {
+    return databaseServer.getStatus()
+  }
+  return { running: false, port: 0 }
+})
+
+// Discover Servers on Network (Client PC)
+ipcMain.handle('server:discover', async () => {
+  try {
+    console.log('📡 Starting server discovery...')
+    
+    const discovery = new ServerDiscovery()
+    const servers = await discovery.discoverServers(3000) // 3 second timeout
+    discovery.stop()
+    
+    console.log(`📡 Found ${servers.length} server(s)`)
+    
+    if (servers.length === 0) {
+      return {
+        success: false,
+        servers: [],
+        error: 'Aucun serveur Thaziri trouvé sur le réseau.\n\nVérifiez que:\n1. Le PC Admin est allumé\n2. L\'application Thaziri est ouverte sur le PC Admin\n3. Les deux PCs sont sur le même réseau WiFi/Ethernet'
+      }
+    }
+    
+    return {
+      success: true,
+      servers: servers.map(s => ({
+        name: s.computerName,
+        ip: s.ip,
+        port: s.port,
+        url: `http://${s.ip}:${s.port}`
+      }))
+    }
+  } catch (error: any) {
+    console.error('❌ Discovery error:', error)
+    return {
+      success: false,
+      servers: [],
+      error: error.message
+    }
+  }
+})
+
+// Connect to Server (Client PC)
+ipcMain.handle('server:connect', async (_, serverUrl: string) => {
+  try {
+    console.log(`🔌 Connecting to server: ${serverUrl}`)
+    
+    databaseClient = new DatabaseClient(serverUrl)
+    const result = await databaseClient.testConnection()
+    
+    if (result.success) {
+      console.log('✅ Connected to database server!')
+      console.log('   Server info:', result.serverInfo)
+      
+      return {
+        success: true,
+        serverInfo: result.serverInfo,
+        message: `Connecté à: ${result.serverInfo.computerName}`
+      }
+    }
+    
+    return result
+  } catch (error: any) {
+    console.error('❌ Connection error:', error)
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+})
+
+// Test connection to existing server
+ipcMain.handle('server:testConnection', async (_, serverUrl: string) => {
+  try {
+    const client = new DatabaseClient(serverUrl)
+    return await client.testConnection()
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+})
+
+ipcMain.handle('print:pdf', async (_, pdfBase64: string, paperSize: 'A4' | 'A5' = 'A4') => {
   try {
     console.log(`🖨️ Printing PDF silently with paper size: ${paperSize}`)
     

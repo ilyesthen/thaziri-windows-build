@@ -27,6 +27,8 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
     "@types/node": "^20.8.6",
     "@types/react": "^18.2.31",
     "@types/react-dom": "^18.2.14",
@@ -57,7 +59,9 @@
     "bcryptjs": "^3.0.2",
     "bytez.js": "^1.1.18",
     "canvas": "^3.2.0",
+    "cors": "^2.8.5",
     "electron-store": "^11.0.2",
+    "express": "^5.1.0",
     "jsbarcode": "^3.12.1",
     "lucide-react": "^0.263.1",
     "pdf-lib": "^1.17.1",

@@ -516,7 +516,11 @@ const ContactLensModal: React.FC<ContactLensModalProps> = ({ isOpen, onClose, pa
                   padding: '10px',
                   border: '2px solid #e0e0e0',
                   borderRadius: '8px',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  position: 'relative',
+                  zIndex: 1,
+                  pointerEvents: 'auto',
+                  background: 'white'
                 }}
                 placeholder="Sélectionnez ou saisissez une marque"
               />
@@ -530,7 +534,8 @@ const ContactLensModal: React.FC<ContactLensModalProps> = ({ isOpen, onClose, pa
                   border: '1px solid #e0e0e0',
                   borderRadius: '4px',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  zIndex: 10
+                  zIndex: 1000,
+                  pointerEvents: 'auto'
                 }}>
                   {brandOptions.map(brand => (
                     <div
@@ -565,7 +570,10 @@ const ContactLensModal: React.FC<ContactLensModalProps> = ({ isOpen, onClose, pa
                   border: '2px solid #e0e0e0',
                   borderRadius: '8px',
                   fontSize: '14px',
-                  background: 'white'
+                  background: 'white',
+                  position: 'relative',
+                  zIndex: 1,
+                  pointerEvents: 'auto'
                 }}
               >
                 {typeOptions.map(option => (
@@ -651,7 +659,7 @@ const ContactLensModal: React.FC<ContactLensModalProps> = ({ isOpen, onClose, pa
                                 ...prev,
                                 od: { ...prev.od, [field]: e.target.value }
                               }))}
-                              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                              style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', position: 'relative', zIndex: 1, pointerEvents: 'auto', background: 'white' }}
                             />
                           </td>
                         </tr>
