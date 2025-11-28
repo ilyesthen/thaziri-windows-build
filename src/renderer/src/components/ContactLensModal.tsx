@@ -463,8 +463,8 @@ const ContactLensModal: React.FC<ContactLensModalProps> = ({ isOpen, onClose, pa
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 10000
-    }}>
+      zIndex: 'var(--z-modal-backdrop)'
+    } as React.CSSProperties}>
       <div style={{
         background: 'white',
         borderRadius: '12px',

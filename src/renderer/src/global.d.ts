@@ -349,6 +349,10 @@ interface ElectronAPI {
 
   printPDF: (pdfBase64: string, paperSize: 'A4' | 'A5') => Promise<{ success: boolean; error?: string }>
 
+  // App Resource API
+  getResourcePath: (filename: string) => Promise<string>
+  readResourceAsBase64: (filename: string) => Promise<string>
+
   // Setup Wizard API
   getComputerName: () => Promise<string>
   setupDatabase: (config: { mode: 'admin' | 'client', databasePath?: string, shareName?: string }) => Promise<{ 
@@ -358,6 +362,7 @@ interface ElectronAPI {
     computerName?: string;
     shareName?: string;
     uncPath?: string;
+    shareCreated?: boolean;
     message?: string;
   }>
   testDatabaseConnection: (databasePath: string) => Promise<{ success: boolean; error?: string; message?: string }>

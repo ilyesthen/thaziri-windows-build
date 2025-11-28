@@ -19,6 +19,8 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
   const [shareName, setShareName] = useState('ThaziriDB');
   const [importDbPath, setImportDbPath] = useState('');
   const [uncPath, setUncPath] = useState('');
+  const [setupMessage, setSetupMessage] = useState('');
+  const [shareCreated, setShareCreated] = useState(false);
 
   useEffect(() => {
     // Get computer name for admin setup
@@ -45,8 +47,10 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
       // Configure as admin (use local database)
       const result = await window.electronAPI.setupDatabase({ mode: 'admin', shareName });
       
-      if (result.success && result.uncPath) {
-        setUncPath(result.uncPath);
+      if (result.success) {
+        if (result.uncPath) setUncPath(result.uncPath);
+        if (result.message) setSetupMessage(result.message);
+        if (result.shareCreated !== undefined) setShareCreated(result.shareCreated);
       }
       
       setStep('complete');
@@ -399,35 +403,49 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
               </div>
 
               {mode === 'admin' && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
-                  <h4 className="font-semibold text-blue-900">Share This With Client PCs:</h4>
-                  
-                  <div className="bg-white rounded-lg p-3 border border-blue-200">
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-sm font-medium text-gray-700">Network Path:</span>
-                      <button
-                        onClick={() => copyToClipboard(getNetworkPath())}
-                        className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm"
-                      >
-                        <Copy className="w-4 h-4" />
-                        Copy
-                      </button>
+                <>
+                  {/* Setup Result Message */}
+                  {setupMessage && (
+                    <div className={`${shareCreated ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'} border rounded-lg p-4`}>
+                      <div className="whitespace-pre-line text-sm text-gray-800">
+                        {setupMessage}
+                      </div>
                     </div>
-                    <code className="text-sm font-mono text-gray-900 block break-all">
-                      {getNetworkPath()}
-                    </code>
-                  </div>
+                  )}
 
-                  <div className="text-sm text-blue-800 space-y-2">
-                    <p className="font-medium">Next Steps:</p>
-                    <ol className="list-decimal list-inside space-y-1 ml-2">
-                      <li>Install Thaziri on client PCs</li>
-                      <li>Select "Client PC" during setup</li>
-                      <li>Enter the network path above</li>
-                      <li>All PCs will share the same database!</li>
-                    </ol>
+                  {/* Network Path Box */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+                    <h4 className="font-semibold text-blue-900">
+                      {shareCreated ? '✅ Chemin Réseau (Prêt à utiliser)' : '📋 Chemin Réseau'}
+                    </h4>
+                    
+                    <div className="bg-white rounded-lg p-3 border border-blue-200">
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span className="text-sm font-medium text-gray-700">Copiez ce chemin:</span>
+                        <button
+                          onClick={() => copyToClipboard(uncPath || getNetworkPath())}
+                          className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm"
+                        >
+                          <Copy className="w-4 h-4" />
+                          Copier
+                        </button>
+                      </div>
+                      <code className="text-sm font-mono text-gray-900 block break-all">
+                        {uncPath || getNetworkPath()}
+                      </code>
+                    </div>
+
+                    <div className="text-sm text-blue-800 space-y-2">
+                      <p className="font-medium">Prochaines étapes:</p>
+                      <ol className="list-decimal list-inside space-y-1 ml-2">
+                        <li>Installez Thaziri sur les PCs clients</li>
+                        <li>Sélectionnez "PC Client" pendant la configuration</li>
+                        <li>Collez le chemin réseau ci-dessus</li>
+                        <li>Tous les PCs partageront la même base de données!</li>
+                      </ol>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               <button

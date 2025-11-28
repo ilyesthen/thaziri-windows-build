@@ -528,6 +528,10 @@ const electronAPI = {
   printPDF: (pdfBase64: string, paperSize: 'A4' | 'A5') => 
     ipcRenderer.invoke('print:pdf', pdfBase64, paperSize),
 
+  // App Resource API
+  getResourcePath: (filename: string) => ipcRenderer.invoke('app:getResourcePath', filename),
+  readResourceAsBase64: (filename: string) => ipcRenderer.invoke('app:readResourceAsBase64', filename),
+
   // Setup Wizard API
   getComputerName: () => ipcRenderer.invoke('setup:getComputerName'),
   setupDatabase: (config: { mode: 'admin' | 'client', databasePath?: string, shareName?: string }) => 

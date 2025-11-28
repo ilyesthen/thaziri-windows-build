@@ -1,5 +1,6 @@
 import { app, BrowserWindow, shell, ipcMain, dialog, powerSaveBlocker } from 'electron'
 import path from 'path'
+import fs from 'fs'
 import * as db from './database'
 import NetworkDiscoveryService from './services/NetworkDiscoveryService'
 import MessagingService from './services/MessagingService'
@@ -1442,6 +1443,85 @@ ipcMain.handle('setup:getComputerName', async () => {
   return require('os').hostname()
 })
 
+// Get resource path for assets (works in both dev and production)
+ipcMain.handle('app:getResourcePath', async (_, filename: string) => {
+  try {
+    if (process.env.NODE_ENV === 'development') {
+      // In development, resources are in public folder
+      return path.join(process.cwd(), 'public', filename)
+    } else {
+      // In production, check multiple locations
+      const possiblePaths = [
+        path.join(process.resourcesPath, 'public', filename),
+        path.join(process.resourcesPath, filename),
+        path.join(__dirname, '..', 'public', filename),
+        path.join(__dirname, '..', '..', 'public', filename),
+        path.join(app.getAppPath(), 'public', filename),
+        path.join(app.getAppPath(), 'dist', filename),
+      ]
+      
+      for (const testPath of possiblePaths) {
+        if (fs.existsSync(testPath)) {
+          console.log(`✅ Found resource at: ${testPath}`)
+          return testPath
+        }
+      }
+      
+      console.error(`❌ Resource not found: ${filename}`)
+      console.error('Searched paths:', possiblePaths)
+      throw new Error(`Resource not found: ${filename}`)
+    }
+  } catch (error) {
+    console.error('Error getting resource path:', error)
+    throw error
+  }
+})
+
+// Read resource file as base64 (for images)
+ipcMain.handle('app:readResourceAsBase64', async (_, filename: string) => {
+  try {
+    const resourcePath = await ipcMain.emit('app:getResourcePath', { reply: () => {} }, filename) as any
+    
+    // Manually get resource path
+    let filePath: string | null = null
+    
+    if (process.env.NODE_ENV === 'development') {
+      filePath = path.join(process.cwd(), 'public', filename)
+    } else {
+      const possiblePaths = [
+        path.join(process.resourcesPath, 'public', filename),
+        path.join(process.resourcesPath, filename),
+        path.join(__dirname, '..', 'public', filename),
+        path.join(__dirname, '..', '..', 'public', filename),
+        path.join(app.getAppPath(), 'public', filename),
+        path.join(app.getAppPath(), 'dist', filename),
+      ]
+      
+      for (const testPath of possiblePaths) {
+        if (fs.existsSync(testPath)) {
+          filePath = testPath
+          break
+        }
+      }
+    }
+    
+    if (!filePath || !fs.existsSync(filePath)) {
+      throw new Error(`File not found: ${filename}`)
+    }
+    
+    console.log(`📖 Reading resource: ${filePath}`)
+    const buffer = fs.readFileSync(filePath)
+    const base64 = buffer.toString('base64')
+    const mimeType = filename.endsWith('.jpg') || filename.endsWith('.jpeg') ? 'image/jpeg' : 
+                     filename.endsWith('.png') ? 'image/png' : 'application/octet-stream'
+    
+    return `data:${mimeType};base64,${base64}`
+  } catch (error) {
+    console.error('Error reading resource:', error)
+    throw error
+  }
+})
+
 ipcMain.handle('setup:database', async (_, config: { mode: 'admin' | 'client', databasePath?: string, shareName?: string }) => {
   try {
     const userDataPath = app.getPath('userData')
@@ -1470,6 +1550,50 @@ ipcMain.handle('setup:database', async (_, config: { mode: 'admin' | 'client', d
       console.log('  Database Path:', dbPath)
       console.log('  UNC Path for clients:', uncPath)
       
+      // Try to automatically share the folder on Windows
+      let shareCreated = false
+      let shareError = ''
+      
+      if (process.platform === 'win32') {
+        try {
+          const { execSync } = require('child_process')
+          
+          // PowerShell command to create network share
+          const psCommand = `
+            $shareName = "${shareName}"
+            $folderPath = "${userDataPath.replace(/\\/g, '\\\\')}"
+            
+            # Check if share already exists
+            $existingShare = Get-SmbShare -Name $shareName -ErrorAction SilentlyContinue
+            
+            if ($existingShare) {
+              # Update existing share
+              Set-SmbShare -Name $shareName -Path $folderPath -FullAccess "Everyone" -Confirm:$false
+              Write-Output "SHARE_UPDATED"
+            } else {
+              # Create new share with full access
+              New-SmbShare -Name $shareName -Path $folderPath -FullAccess "Everyone" -Description "Thaziri Database Share"
+              Write-Output "SHARE_CREATED"
+            }
+          `.trim()
+          
+          console.log('📁 Creating Windows network share...')
+          const result = execSync(`powershell.exe -Command "${psCommand}"`, { 
+            encoding: 'utf8',
+            windowsHide: true
+          })
+          
+          if (result.includes('SHARE_CREATED') || result.includes('SHARE_UPDATED')) {
+            shareCreated = true
+            console.log('✅ Network share created successfully!')
+          }
+        } catch (error: any) {
+          shareError = error.message || 'Unknown error'
+          console.error('❌ Failed to create network share:', error)
+          console.error('   User will need to share manually')
+        }
+      }
+      
       // Mark setup as complete with all info
       fs.writeFileSync(setupCompletePath, JSON.stringify({
         mode: 'admin',
@@ -1477,8 +1601,31 @@ ipcMain.handle('setup:database', async (_, config: { mode: 'admin' | 'client', d
         shareName: shareName,
         computerName: computerName,
         uncPath: uncPath,
-        databasePath: dbPath
+        databasePath: dbPath,
+        shareCreated: shareCreated
       }, null, 2))
+      
+      let message = `✅ PC Admin configuré!\n\n`
+      
+      if (shareCreated) {
+        message += `🌐 Partage réseau créé automatiquement!\n\n`
+        message += `📋 Chemin à partager avec les autres PCs:\n${uncPath}\n\n`
+        message += `✅ Les autres PCs peuvent maintenant se connecter!`
+      } else {
+        message += `⚠️ Partage réseau non créé automatiquement.\n\n`
+        message += `📋 INSTRUCTIONS MANUELLES:\n\n`
+        message += `1. Ouvrez l'Explorateur Windows\n`
+        message += `2. Naviguez vers: ${userDataPath}\n`
+        message += `3. Clic droit → Propriétés → Partage\n`
+        message += `4. Cliquez "Partager"\n`
+        message += `5. Ajoutez "Tout le monde" avec permission Lecture/Écriture\n`
+        message += `6. Nommez le partage: ${shareName}\n\n`
+        message += `📋 Chemin pour les autres PCs:\n${uncPath}`
+        
+        if (shareError && shareError.includes('access')) {
+          message += `\n\n💡 Astuce: Exécutez l'application en tant qu'Administrateur pour partager automatiquement`
+        }
+      }
       
       return { 
         success: true, 
@@ -1486,7 +1633,8 @@ ipcMain.handle('setup:database', async (_, config: { mode: 'admin' | 'client', d
         computerName,
         shareName,
         uncPath,
-        message: `PC Admin configuré. Partagez ce chemin avec les autres PCs:\n\n${uncPath}`
+        shareCreated,
+        message
       }
     } else {
       // Client mode: Save database path configuration

@@ -1481,7 +1481,8 @@ const PatientDetailsView: React.FC = () => {
             cursor: 'pointer',
             minWidth: '140px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease'
+            transition: 'all 0.2s ease',
+            pointerEvents: 'auto'
           }}
           title="Envoyer un message"
           onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -1504,7 +1505,8 @@ const PatientDetailsView: React.FC = () => {
             cursor: 'pointer',
             minWidth: '140px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease'
+            transition: 'all 0.2s ease',
+            pointerEvents: 'auto'
           }}
           title={`Messages Reçus - ${patient?.firstName || ''} ${patient?.lastName || ''}`}
           onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -1527,7 +1529,8 @@ const PatientDetailsView: React.FC = () => {
             cursor: 'pointer',
             minWidth: '140px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease'
+            transition: 'all 0.2s ease',
+            pointerEvents: 'auto'
           }}
           title="Historique des Paiements"
           onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -1550,7 +1553,8 @@ const PatientDetailsView: React.FC = () => {
             cursor: 'pointer',
             minWidth: '60px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease'
+            transition: 'all 0.2s ease',
+            pointerEvents: 'auto'
           }}
           title="Ordonnance"
           onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
