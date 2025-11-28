@@ -532,7 +532,17 @@ const electronAPI = {
   getResourcePath: (filename: string) => ipcRenderer.invoke('app:getResourcePath', filename),
   readResourceAsBase64: (filename: string) => ipcRenderer.invoke('app:readResourceAsBase64', filename),
 
-  // Setup Wizard API
+  // Professional Database Server API
+  server: {
+    start: () => ipcRenderer.invoke('server:start'),
+    stop: () => ipcRenderer.invoke('server:stop'),
+    status: () => ipcRenderer.invoke('server:status'),
+    discover: () => ipcRenderer.invoke('server:discover'),
+    connect: (serverUrl: string) => ipcRenderer.invoke('server:connect', serverUrl),
+    testConnection: (serverUrl: string) => ipcRenderer.invoke('server:testConnection', serverUrl)
+  },
+
+  // Setup Wizard API (Legacy - kept for backward compatibility)
   getComputerName: () => ipcRenderer.invoke('setup:getComputerName'),
   setupDatabase: (config: { mode: 'admin' | 'client', databasePath?: string, shareName?: string }) => 
     ipcRenderer.invoke('setup:database', config),

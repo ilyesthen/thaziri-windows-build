@@ -21,6 +21,9 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
   const [uncPath, setUncPath] = useState('');
   const [setupMessage, setSetupMessage] = useState('');
   const [shareCreated, setShareCreated] = useState(false);
+  const [serverUrl, setServerUrl] = useState('');
+  const [discoveredServers, setDiscoveredServers] = useState<Array<{ name: string; ip: string; port: number; url: string }>>([]);
+  const [isDiscovering, setIsDiscovering] = useState(false);
 
   useEffect(() => {
     // Get computer name for admin setup
@@ -33,54 +36,118 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
       setStep('admin-setup');
     } else {
       setStep('client-setup');
+      // Auto-discover servers when entering client setup
+      handleDiscoverServers();
     }
   };
 
   const handleAdminSetup = async () => {
     try {
-      // Import existing database FIRST if provided
+      setConnectionStatus('testing');
+      setErrorMessage('');
+      
+      // Step 1: Import existing database if provided
       if (importDbPath) {
         console.log('📥 Importing database from:', importDbPath);
-        await window.electronAPI.importDatabase(importDbPath);
+        setSetupMessage('📥 Importation de la base de données...');
+        
+        const importResult = await window.electronAPI.importDatabase(importDbPath);
+        if (!importResult.success) {
+          setErrorMessage(`Erreur d'importation: ${importResult.error}`);
+          setConnectionStatus('error');
+          return;
+        }
+        
+        console.log('✅ Database imported successfully');
       }
       
-      // Configure as admin (use local database)
-      const result = await window.electronAPI.setupDatabase({ mode: 'admin', shareName });
+      // Step 2: Start the database server
+      console.log('🚀 Starting database server...');
+      setSetupMessage('🚀 Démarrage du serveur...');
       
-      if (result.success) {
-        if (result.uncPath) setUncPath(result.uncPath);
-        if (result.message) setSetupMessage(result.message);
-        if (result.shareCreated !== undefined) setShareCreated(result.shareCreated);
+      const serverResult = await window.electronAPI.server.start();
+      
+      if (!serverResult.success) {
+        setErrorMessage(`Erreur: ${serverResult.error || 'Impossible de démarrer le serveur'}`);
+        setConnectionStatus('error');
+        return;
       }
       
+      // Step 3: Save server info and complete
+      setServerUrl(serverResult.url || '');
+      
+      let finalMessage = '✅ Configuration Admin terminée!\n\n';
+      if (importDbPath) {
+        finalMessage += '📥 Base de données importée\n';
+      }
+      finalMessage += `🌐 Serveur démarré:\n`;
+      finalMessage += `   IP: ${serverResult.ip}\n`;
+      finalMessage += `   Port: ${serverResult.port}\n`;
+      finalMessage += `   URL: ${serverResult.url}\n\n`;
+      finalMessage += '✅ Les PCs clients peuvent maintenant se connecter!';
+      
+      setSetupMessage(finalMessage);
+      
+      // Mark setup as complete
+      await window.electronAPI.setupDatabase({ mode: 'admin', shareName });
+      
+      setConnectionStatus('success');
       setStep('complete');
     } catch (error) {
-      setErrorMessage(`Setup failed: ${error}`);
+      console.error('Setup error:', error);
+      setErrorMessage(`Erreur de configuration: ${error}`);
       setConnectionStatus('error');
     }
   };
 
-  const handleClientSetup = async () => {
+  const handleDiscoverServers = async () => {
+    setIsDiscovering(true);
+    setConnectionStatus('testing');
+    setErrorMessage('');
+    setDiscoveredServers([]);
+
+    try {
+      console.log('📡 Discovering servers...');
+      const result = await window.electronAPI.server.discover();
+      
+      if (result.success && result.servers && result.servers.length > 0) {
+        setDiscoveredServers(result.servers);
+        setConnectionStatus('idle');
+      } else {
+        setErrorMessage(result.error || 'Aucun serveur trouvé');
+        setConnectionStatus('error');
+      }
+    } catch (error) {
+      console.error('Discovery error:', error);
+      setErrorMessage(`Erreur de découverte: ${error}`);
+      setConnectionStatus('error');
+    } finally {
+      setIsDiscovering(false);
+    }
+  };
+
+  const handleConnectToServer = async (server: { name: string; ip: string; port: number; url: string }) => {
     setIsConnecting(true);
     setConnectionStatus('testing');
     setErrorMessage('');
 
     try {
-      // Test connection to server
-      const result = await window.electronAPI.testDatabaseConnection(serverPath);
+      console.log(`🔌 Connecting to ${server.name}...`);
+      const result = await window.electronAPI.server.connect(server.url);
       
       if (result.success) {
         // Save configuration
         await window.electronAPI.setupDatabase({ 
           mode: 'client', 
-          databasePath: serverPath 
+          databasePath: server.url 
         });
         
         setConnectionStatus('success');
+        setSetupMessage(`✅ Connecté à: ${server.name}\n\nIP: ${server.ip}\nPort: ${server.port}`);
         setTimeout(() => setStep('complete'), 1500);
       } else {
         setConnectionStatus('error');
-        setErrorMessage(result.error || 'Failed to connect to database');
+        setErrorMessage(result.error || 'Failed to connect');
       }
     } catch (error) {
       setConnectionStatus('error');
@@ -263,125 +330,155 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
                 </label>
               </div>
 
-              {/* Next Steps Info */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 mb-2">After Setup:</h4>
-                <ol className="space-y-2 text-sm text-blue-800 list-decimal list-inside">
-                  <li>The database will be created automatically</li>
-                  <li>Windows will prompt you to share the folder - click "Share"</li>
-                  <li>You'll get connection instructions for client PCs</li>
-                </ol>
-              </div>
+              {/* Setup Progress Status */}
+              {connectionStatus === 'testing' && setupMessage && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    <span className="text-blue-800 font-medium whitespace-pre-line">{setupMessage}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Display */}
+              {connectionStatus === 'error' && errorMessage && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                    <div>
+                      <span className="text-red-800 font-medium block">Erreur de configuration</span>
+                      <span className="text-red-700 text-sm whitespace-pre-line">{errorMessage}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Next Steps Info - Only show when not in progress */}
+              {connectionStatus === 'idle' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-900 mb-2">Ce qui va se passer:</h4>
+                  <ol className="space-y-2 text-sm text-blue-800 list-decimal list-inside">
+                    <li>La base de données sera créée automatiquement</li>
+                    <li>Le serveur démarrera et sera accessible sur le réseau</li>
+                    <li>Vous recevrez les informations de connexion pour les clients</li>
+                  </ol>
+                </div>
+              )}
 
               <div className="flex gap-3">
                 <button
                   onClick={() => setStep('mode-selection')}
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                  disabled={connectionStatus === 'testing'}
                 >
-                  Back
+                  Retour
                 </button>
                 <button
                   onClick={handleAdminSetup}
-                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  disabled={connectionStatus === 'testing'}
+                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Continue
+                  {connectionStatus === 'testing' ? 'Configuration...' : 'Continuer'}
                 </button>
               </div>
             </div>
           )}
 
-          {/* Client Setup Step */}
+          {/* Client Setup Step - AUTO-DISCOVERY */}
           {step === 'client-setup' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 text-green-600" />
+                  <Network className="w-8 h-8 text-green-600" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Client PC Setup</h3>
-                <p className="text-gray-600">Connect to the admin PC's database</p>
+                <p className="text-gray-600">Découverte automatique des serveurs</p>
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex gap-3">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-yellow-800">
-                    <p className="font-semibold mb-1">Before you continue:</p>
-                    <p>Make sure the Admin PC setup is complete and you have the network path.</p>
+                  <Network className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-semibold mb-1">Recherche en cours...</p>
+                    <p>Le système recherche automatiquement les serveurs Thaziri sur le réseau</p>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <label className="block">
-                  <span className="text-sm font-semibold text-gray-700">Database Network Path</span>
-                  <input
-                    type="text"
-                    value={serverPath}
-                    onChange={(e) => setServerPath(e.target.value)}
-                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="\\ADMIN-PC\ThaziriDB\thaziri-database.db"
-                  />
-                  <span className="text-xs text-gray-500 mt-1 block">
-                    Enter the UNC path provided by the Admin PC setup
-                  </span>
-                </label>
-              </div>
-
-              {/* Connection Status */}
-              {connectionStatus !== 'idle' && (
-                <div className={`rounded-lg p-4 ${
-                  connectionStatus === 'testing' ? 'bg-blue-50 border border-blue-200' :
-                  connectionStatus === 'success' ? 'bg-green-50 border border-green-200' :
-                  'bg-red-50 border border-red-200'
-                }`}>
+              {/* Discovery Status */}
+              {isDiscovering && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="flex items-center gap-3">
-                    {connectionStatus === 'testing' && (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                        <span className="text-blue-800 font-medium">Testing connection...</span>
-                      </>
-                    )}
-                    {connectionStatus === 'success' && (
-                      <>
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                        <span className="text-green-800 font-medium">Connection successful!</span>
-                      </>
-                    )}
-                    {connectionStatus === 'error' && (
-                      <>
-                        <AlertCircle className="w-5 h-5 text-red-600" />
-                        <div className="flex-1">
-                          <span className="text-red-800 font-medium block">Connection failed</span>
-                          <span className="text-red-700 text-sm">{errorMessage}</span>
-                        </div>
-                      </>
-                    )}
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    <span className="text-blue-800 font-medium">📡 Scan du réseau en cours...</span>
                   </div>
                 </div>
               )}
 
-              {/* Example format */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Expected Format:</h4>
-                <code className="text-xs text-gray-600 block font-mono bg-white px-3 py-2 rounded border border-gray-200">
-                  \\COMPUTER-NAME\ShareName\thaziri-database.db
-                </code>
-              </div>
+              {/* Discovered Servers List */}
+              {!isDiscovering && discoveredServers.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-900">Serveurs disponibles ({discoveredServers.length}):</h4>
+                  {discoveredServers.map((server, index) => (
+                    <div
+                      key={index}
+                      className="border-2 border-green-200 rounded-lg p-4 hover:border-green-400 transition-colors cursor-pointer bg-white"
+                      onClick={() => handleConnectToServer(server)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold text-gray-900 text-lg">{server.name}</div>
+                          <div className="text-sm text-gray-600">
+                            IP: {server.ip} • Port: {server.port}
+                          </div>
+                          <div className="text-xs text-gray-500 font-mono mt-1">{server.url}</div>
+                        </div>
+                        <button className="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors">
+                          Connecter
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Error or No Servers */}
+              {!isDiscovering && discoveredServers.length === 0 && errorMessage && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                    <div>
+                      <span className="text-red-800 font-medium block">Aucun serveur trouvé</span>
+                      <span className="text-red-700 text-sm whitespace-pre-line">{errorMessage}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Connection Status */}
+              {isConnecting && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                    <span className="text-blue-800 font-medium">Connexion en cours...</span>
+                  </div>
+                </div>
+              )}
 
               <div className="flex gap-3">
                 <button
                   onClick={() => setStep('mode-selection')}
                   className="flex-1 px-4 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
-                  disabled={isConnecting}
+                  disabled={isConnecting || isDiscovering}
                 >
-                  Back
+                  Retour
                 </button>
                 <button
-                  onClick={handleClientSetup}
-                  disabled={!serverPath || isConnecting}
+                  onClick={handleDiscoverServers}
+                  disabled={isConnecting || isDiscovering}
                   className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isConnecting ? 'Testing...' : 'Connect'}
+                  {isDiscovering ? '🔍 Recherche...' : '🔄 Rechercher à nouveau'}
                 </button>
               </div>
             </div>

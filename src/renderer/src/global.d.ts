@@ -353,7 +353,30 @@ interface ElectronAPI {
   getResourcePath: (filename: string) => Promise<string>
   readResourceAsBase64: (filename: string) => Promise<string>
 
-  // Setup Wizard API
+  // Professional Database Server API
+  server: {
+    start: () => Promise<{ success: boolean; ip?: string; port?: number; url?: string; error?: string }>
+    stop: () => Promise<{ success: boolean; error?: string }>
+    status: () => Promise<{ running: boolean; port: number }>
+    discover: () => Promise<{ 
+      success: boolean; 
+      servers?: Array<{ name: string; ip: string; port: number; url: string }>; 
+      error?: string 
+    }>
+    connect: (serverUrl: string) => Promise<{ 
+      success: boolean; 
+      serverInfo?: any; 
+      message?: string; 
+      error?: string 
+    }>
+    testConnection: (serverUrl: string) => Promise<{ 
+      success: boolean; 
+      serverInfo?: any; 
+      error?: string 
+    }>
+  }
+
+  // Setup Wizard API (Legacy)
   getComputerName: () => Promise<string>
   setupDatabase: (config: { mode: 'admin' | 'client', databasePath?: string, shareName?: string }) => Promise<{ 
     success: boolean; 

@@ -1754,12 +1754,22 @@ ipcMain.handle('setup:importDatabase', async (_, sourcePath: string) => {
     const userDataPath = app.getPath('userData')
     const destPath = path.join(userDataPath, 'thaziri-database.db')
     
+    console.log('📥 Importing database...')
+    console.log('  Source:', sourcePath)
+    console.log('  Destination:', destPath)
+    
     // Copy database file
     fs.copyFileSync(sourcePath, destPath)
     
+    console.log('✅ Database imported successfully')
+    
+    // Important: After import, reinitialize database connection
+    // This ensures the Prisma client uses the new database
+    await db.initializeDatabase()
+    
     return { success: true }
   } catch (error: any) {
-    console.error('Database import error:', error)
+    console.error('❌ Database import error:', error)
     return { success: false, error: error.message }
   }
 })
