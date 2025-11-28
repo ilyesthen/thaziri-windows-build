@@ -48,9 +48,11 @@ export default defineConfig({
       '@preload': resolve(__dirname, 'src/preload'),
     },
   },
+  publicDir: path.resolve(__dirname, 'public'),
   build: {
     outDir: path.resolve(__dirname, 'dist'),
     emptyOutDir: true,
+    copyPublicDir: true,
   },
   server: {
     port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : 5173,

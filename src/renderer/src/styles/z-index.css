@@ -1,0 +1,50 @@
+/**
+ * GLOBAL Z-INDEX HIERARCHY
+ * 
+ * This file establishes a clear z-index system for the entire application
+ * to prevent input blocking and overlay issues.
+ * 
+ * RULES:
+ * 1. Lower layers should NEVER block interaction with higher layers
+ * 2. All fixed/absolute positioned elements must use these variables
+ * 3. Modals/overlays should ONLY block when actually open
+ */
+
+:root {
+  /* Base Layer - Normal content */
+  --z-base: 1;
+  --z-dropdown: 100;
+  --z-sticky-header: 200;
+  
+  /* UI Elements that float but don't block */
+  --z-floating-button: 900;
+  
+  /* Modals and Overlays - ONLY when open */
+  --z-modal-backdrop: 1000;
+  --z-modal-content: 1001;
+  
+  /* Higher priority modals */
+  --z-priority-modal-backdrop: 2000;
+  --z-priority-modal-content: 2001;
+  
+  /* Top layer - AI Chat (should be accessible but not block modals) */
+  --z-ai-chat-button: 3000;
+  --z-ai-chat-backdrop: 2999;
+  --z-ai-chat-content: 3001;
+  
+  /* Absolute top - Error messages, tooltips */
+  --z-tooltip: 4000;
+  --z-notification: 5000;
+}
+
+/* CRITICAL: Ensure inputs are never blocked */
+input, textarea, select, button {
+  position: relative;
+  z-index: var(--z-base);
+}
+
+/* Form containers should not create stacking contexts that block inputs */
+form, .form-group, .input-group {
+  position: relative;
+  z-index: auto !important;
+}

@@ -1166,7 +1166,7 @@ const PatientDetailsView: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 10000
+          zIndex: 'var(--z-modal-backdrop)'
         }}>
           <div style={{
             background: 'white',
@@ -1277,10 +1277,11 @@ const PatientDetailsView: React.FC = () => {
         right: 0, 
         background: '#2A6484', // Same color as top bar
         padding: '12px',
-        zIndex: 1000,
+        zIndex: 'var(--z-base)',
         display: 'flex',
         justifyContent: 'center',
         gap: '16px',
+        pointerEvents: 'none', // Don't block clicks above
         boxShadow: '0 -2px 10px rgba(0,0,0,0.1)'
       }}>
         {/* S Button */}
@@ -1296,7 +1297,8 @@ const PatientDetailsView: React.FC = () => {
             cursor: 'pointer',
             minWidth: '60px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease'
+            transition: 'all 0.2s ease',
+            pointerEvents: 'auto' // Re-enable clicks for button
           }}
           title="Dilatation sous Skiacol"
           onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -1341,7 +1343,8 @@ const PatientDetailsView: React.FC = () => {
             cursor: 'pointer',
             minWidth: '60px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease'
+            transition: 'all 0.2s ease',
+            pointerEvents: 'auto'
           }}
           title="Dilatation OD"
           onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
@@ -1383,6 +1386,7 @@ const PatientDetailsView: React.FC = () => {
             padding: '12px 20px',
             fontSize: '16px',
             fontWeight: 'bold',
+            pointerEvents: 'auto',
             cursor: 'pointer',
             minWidth: '60px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
@@ -1431,7 +1435,8 @@ const PatientDetailsView: React.FC = () => {
             cursor: 'pointer',
             minWidth: '60px',
             boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s ease'
+            transition: 'all 0.2s ease',
+            pointerEvents: 'auto'
           }}
           title="Dilatation ODG"
           onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}

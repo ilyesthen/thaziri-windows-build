@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import JsBarcode from 'jsbarcode'
+import { loadPDFTemplateImage } from '../utils/pdfImageLoader'
 
 interface ContactLensModalProps {
   isOpen: boolean
@@ -154,29 +155,14 @@ const ContactLensModal: React.FC<ContactLensModalProps> = ({ isOpen, onClose, pa
       const barcodeDataUrl = barcodeCanvas.toDataURL('image/png')
       
       // Load the image template
-      const imagePath = '/ffad17b0-7b80-424b-99e2-4173d59b7fcb-2.jpg'
-      console.log('📸 Loading image from:', imagePath)
-      
-      const response = await fetch(imagePath)
-      if (!response.ok) {
-        throw new Error(`Failed to load image: ${response.status}`)
-      }
-      
-      const imageBytes = await response.arrayBuffer()
+      const imageBytes = await loadPDFTemplateImage()
       console.log('✅ Image loaded, size:', imageBytes.byteLength, 'bytes')
       
       // Create new PDF document
       const pdfDoc = await PDFDocument.create()
       
-      // Embed the image
-      let image
-      if (imagePath.toLowerCase().endsWith('.jpg') || imagePath.toLowerCase().endsWith('.jpeg')) {
-        image = await pdfDoc.embedJpg(imageBytes)
-      } else if (imagePath.toLowerCase().endsWith('.png')) {
-        image = await pdfDoc.embedPng(imageBytes)
-      } else {
-        throw new Error('Unsupported image format')
-      }
+      // Embed the image (template is JPG)
+      const image = await pdfDoc.embedJpg(imageBytes)
       
       // Get image dimensions
       const { width: imgWidth, height: imgHeight } = image.scale(1)

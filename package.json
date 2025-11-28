@@ -80,6 +80,7 @@
     "files": [
       "dist",
       "dist-electron",
+      "public",
       "node_modules",
       "package.json",
       "prisma",

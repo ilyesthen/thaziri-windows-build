@@ -351,8 +351,16 @@ interface ElectronAPI {
 
   // Setup Wizard API
   getComputerName: () => Promise<string>
-  setupDatabase: (config: { mode: 'admin' | 'client', databasePath?: string, shareName?: string }) => Promise<{ success: boolean; mode?: string; error?: string }>
-  testDatabaseConnection: (databasePath: string) => Promise<{ success: boolean; error?: string }>
+  setupDatabase: (config: { mode: 'admin' | 'client', databasePath?: string, shareName?: string }) => Promise<{ 
+    success: boolean; 
+    mode?: string; 
+    error?: string;
+    computerName?: string;
+    shareName?: string;
+    uncPath?: string;
+    message?: string;
+  }>
+  testDatabaseConnection: (databasePath: string) => Promise<{ success: boolean; error?: string; message?: string }>
   importDatabase: (sourcePath: string) => Promise<{ success: boolean; error?: string }>
   isSetupComplete: () => Promise<{ complete: boolean; mode?: string; completedAt?: string; [key: string]: any }>
   selectFile: (options: any) => Promise<string | null>

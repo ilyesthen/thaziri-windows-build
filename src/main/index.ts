@@ -1447,21 +1447,47 @@ ipcMain.handle('setup:database', async (_, config: { mode: 'admin' | 'client', d
     const userDataPath = app.getPath('userData')
     const configPath = path.join(userDataPath, 'database-config.json')
     const setupCompletePath = path.join(userDataPath, 'setup-complete')
+    const fs = require('fs')
+    const os = require('os')
     
     if (config.mode === 'admin') {
       // Admin mode: Remove any client configuration
-      if (require('fs').existsSync(configPath)) {
-        require('fs').unlinkSync(configPath)
+      if (fs.existsSync(configPath)) {
+        fs.unlinkSync(configPath)
       }
       
-      // Mark setup as complete
-      require('fs').writeFileSync(setupCompletePath, JSON.stringify({
+      // Get computer name for network path
+      const computerName = os.hostname().toUpperCase().replace(/\..+$/, '')
+      const shareName = config.shareName || 'ThaziriDB'
+      const dbPath = path.join(userDataPath, 'thaziri-database.db')
+      
+      // Build UNC path that clients will use
+      const uncPath = `\\\\${computerName}\\${shareName}\\thaziri-database.db`
+      
+      console.log('🔧 Admin PC Setup:')
+      console.log('  Computer Name:', computerName)
+      console.log('  Share Name:', shareName)
+      console.log('  Database Path:', dbPath)
+      console.log('  UNC Path for clients:', uncPath)
+      
+      // Mark setup as complete with all info
+      fs.writeFileSync(setupCompletePath, JSON.stringify({
         mode: 'admin',
         completedAt: new Date().toISOString(),
-        shareName: config.shareName || 'ThaziriDB'
-      }))
+        shareName: shareName,
+        computerName: computerName,
+        uncPath: uncPath,
+        databasePath: dbPath
+      }, null, 2))
       
-      return { success: true, mode: 'admin' }
+      return { 
+        success: true, 
+        mode: 'admin',
+        computerName,
+        shareName,
+        uncPath,
+        message: `PC Admin configuré. Partagez ce chemin avec les autres PCs:\n\n${uncPath}`
+      }
     } else {
       // Client mode: Save database path configuration
       if (!config.databasePath) {
@@ -1490,23 +1516,76 @@ ipcMain.handle('setup:database', async (_, config: { mode: 'admin' | 'client', d
 ipcMain.handle('setup:testConnection', async (_, databasePath: string) => {
   try {
     const fs = require('fs')
+    const path = require('path')
     
-    // Test if path is accessible
-    if (!fs.existsSync(databasePath)) {
-      return { success: false, error: 'Database file not found at specified path' }
+    console.log('🔍 Testing database connection to:', databasePath)
+    
+    // Normalize path (handles both UNC and regular paths)
+    const normalizedPath = path.normalize(databasePath)
+    console.log('📍 Normalized path:', normalizedPath)
+    
+    // Test if path exists
+    if (!fs.existsSync(normalizedPath)) {
+      console.error('❌ Path does not exist')
+      return { 
+        success: false, 
+        error: `Fichier introuvable: ${normalizedPath}\n\nVérifiez que:\n1. Le chemin réseau est correct (\\\\PC-NAME\\ThaziriDB\\thaziri-database.db)\n2. Le dossier est partagé sur le PC Admin\n3. Vous avez les permissions d'accès` 
+      }
     }
     
-    // Test if we can read the file
-    fs.accessSync(databasePath, fs.constants.R_OK | fs.constants.W_OK)
+    // Test if it's a file (not a directory)
+    const stats = fs.statSync(normalizedPath)
+    if (!stats.isFile()) {
+      return { 
+        success: false, 
+        error: 'Le chemin spécifié est un dossier, pas un fichier de base de données' 
+      }
+    }
     
-    return { success: true }
+    // Test read permission
+    try {
+      fs.accessSync(normalizedPath, fs.constants.R_OK)
+    } catch (err) {
+      return { 
+        success: false, 
+        error: 'Impossible de lire le fichier. Vérifiez les permissions de partage.' 
+      }
+    }
+    
+    // Test write permission
+    try {
+      fs.accessSync(normalizedPath, fs.constants.W_OK)
+    } catch (err) {
+      return { 
+        success: false, 
+        error: 'Impossible d\'écrire dans le fichier. Assurez-vous que le partage autorise les modifications.' 
+      }
+    }
+    
+    // Verify it's a SQLite database by checking the header
+    const buffer = Buffer.alloc(16)
+    const fd = fs.openSync(normalizedPath, 'r')
+    fs.readSync(fd, buffer, 0, 16, 0)
+    fs.closeSync(fd)
+    
+    const header = buffer.toString('utf-8', 0, 15)
+    if (!header.startsWith('SQLite format')) {
+      return { 
+        success: false, 
+        error: 'Le fichier n\'est pas une base de données SQLite valide' 
+      }
+    }
+    
+    console.log('✅ Database connection test successful!')
+    return { success: true, message: 'Connexion réussie! La base de données est accessible.' }
   } catch (error: any) {
-    console.error('Connection test failed:', error)
+    console.error('❌ Connection test failed:', error)
     return { 
       success: false, 
-      error: error.code === 'ENOENT' ? 'Path not found' : 
-             error.code === 'EACCES' ? 'Permission denied' :
-             error.message 
+      error: error.code === 'ENOENT' ? 'Chemin réseau introuvable. Vérifiez le partage réseau.' : 
+             error.code === 'EACCES' ? 'Accès refusé. Vérifiez les permissions de partage.' :
+             error.code === 'ENOTDIR' ? 'Chemin invalide' :
+             `Erreur de connexion: ${error.message}` 
     }
   }
 })

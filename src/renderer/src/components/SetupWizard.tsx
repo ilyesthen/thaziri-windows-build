@@ -18,6 +18,7 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
   const [computerName, setComputerName] = useState('');
   const [shareName, setShareName] = useState('ThaziriDB');
   const [importDbPath, setImportDbPath] = useState('');
+  const [uncPath, setUncPath] = useState('');
 
   useEffect(() => {
     // Get computer name for admin setup
@@ -35,12 +36,17 @@ export default function SetupWizard({ onComplete }: SetupWizardProps) {
 
   const handleAdminSetup = async () => {
     try {
-      // Configure as admin (use local database)
-      await window.electronAPI.setupDatabase({ mode: 'admin', shareName });
-      
-      // Import existing database if provided
+      // Import existing database FIRST if provided
       if (importDbPath) {
+        console.log('📥 Importing database from:', importDbPath);
         await window.electronAPI.importDatabase(importDbPath);
+      }
+      
+      // Configure as admin (use local database)
+      const result = await window.electronAPI.setupDatabase({ mode: 'admin', shareName });
+      
+      if (result.success && result.uncPath) {
+        setUncPath(result.uncPath);
       }
       
       setStep('complete');

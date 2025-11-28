@@ -10,9 +10,10 @@
   justify-content: center;
   cursor: move;
   box-shadow: 0 4px 20px rgba(42, 100, 132, 0.4);
-  z-index: 9999;
+  z-index: 999999;
   transition: transform 0.2s, box-shadow 0.2s;
   user-select: none;
+  pointer-events: auto;
 }
 
 .floating-ai-button:hover {
@@ -67,8 +68,9 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 9997;
+  z-index: 999997;
   animation: fadeIn 0.3s ease-out;
+  pointer-events: auto;
 }
 
 @keyframes fadeIn {
@@ -90,12 +92,13 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
-  z-index: 9998;
+  z-index: 999998;
   overflow: hidden;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   animation: fadeInScale 0.3s ease-out;
+  pointer-events: auto;
 }
 
 @keyframes fadeInScale {

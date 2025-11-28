@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
+import './GlassesPrescriptionModal.css'
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import JsBarcode from 'jsbarcode'
-import './GlassesPrescriptionModal.css'
+import { loadPDFTemplateImage } from '../utils/pdfImageLoader'
 
 interface GlassesPrescriptionModalProps {
   isOpen: boolean
@@ -125,12 +126,7 @@ const GlassesPrescriptionModal: React.FC<GlassesPrescriptionModalProps> = ({
       const barcodeImageBytes = await fetch(barcodeDataUrl).then(res => res.arrayBuffer())
 
       // Load the background image
-      const imagePath = '/ffad17b0-7b80-424b-99e2-4173d59b7fcb-2.jpg'
-      const response = await fetch(imagePath)
-      if (!response.ok) {
-        throw new Error(`Failed to load image: ${response.status}`)
-      }
-      const imageBytes = await response.arrayBuffer()
+      const imageBytes = await loadPDFTemplateImage()
 
       // Create new PDF document
       const pdfDoc = await PDFDocument.create()

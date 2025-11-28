@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './OrdonnancePage.css';
 import { useAuthStore } from '../store/authStore';
+import { loadPDFTemplateImage } from '../utils/pdfImageLoader';
 import RoomBasedSendMessageModal from './RoomBasedSendMessageModal';
 import RoomBasedReceiveMessageModal from './RoomBasedReceiveMessageModal';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
@@ -177,8 +178,8 @@ const OrdonnancePage: React.FC = () => {
     
     return new Date().toISOString().split('T')[0];
   }, []);
-  
-  // Get patient data from navigation state
+
+  // Convert date from YYYY-MM-DD to DD/MM/YYYY for display
   const { patient } = location.state || {};
   
   const [activeTab, setActiveTab] = useState<'prescriptions' | 'bilan' | 'comptes'>('prescriptions');
@@ -1183,12 +1184,7 @@ const OrdonnancePage: React.FC = () => {
       const barcodeDataUrl = canvas.toDataURL('image/png');
 
       // Load background image
-      const imagePath = '/ffad17b0-7b80-424b-99e2-4173d59b7fcb-2.jpg';
-      const response = await fetch(imagePath);
-      if (!response.ok) {
-        throw new Error(`Failed to load image: ${response.status}`);
-      }
-      const imageBytes = await response.arrayBuffer();
+      const imageBytes = await loadPDFTemplateImage();
 
       // Create new PDF document
       const pdfDoc = await PDFDocument.create();
@@ -1577,12 +1573,7 @@ const OrdonnancePage: React.FC = () => {
       const barcodeDataUrl = canvas.toDataURL('image/png');
 
       // Load background image
-      const imagePath = '/ffad17b0-7b80-424b-99e2-4173d59b7fcb-2.jpg';
-      const response = await fetch(imagePath);
-      if (!response.ok) {
-        throw new Error(`Failed to load image: ${response.status}`);
-      }
-      const imageBytes = await response.arrayBuffer();
+      const imageBytes = await loadPDFTemplateImage();
 
       // Create new PDF document
       const pdfDoc = await PDFDocument.create();
@@ -1898,12 +1889,7 @@ const OrdonnancePage: React.FC = () => {
       const barcodeDataUrl = canvas.toDataURL('image/png');
 
       // Load background image
-      const imagePath = '/ffad17b0-7b80-424b-99e2-4173d59b7fcb-2.jpg';
-      const response = await fetch(imagePath);
-      if (!response.ok) {
-        throw new Error(`Failed to load image: ${response.status}`);
-      }
-      const imageBytes = await response.arrayBuffer();
+      const imageBytes = await loadPDFTemplateImage();
 
       // Create new PDF document
       const pdfDoc = await PDFDocument.create();
