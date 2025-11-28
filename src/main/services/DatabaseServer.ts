@@ -125,7 +125,12 @@ export class DatabaseServer {
       try {
         const { functionName, args } = req.body
         
+        console.log(`📡 SERVER RECEIVED: /db/execute`)
+        console.log(`   Function: ${functionName}`)
+        console.log(`   Args:`, args)
+        
         if (!functionName) {
+          console.error(`❌ Missing functionName`)
           return res.status(400).json({ error: 'Missing functionName' })
         }
         
@@ -134,15 +139,27 @@ export class DatabaseServer {
         const func = db[functionName]
         
         if (!func || typeof func !== 'function') {
+          console.error(`❌ Function ${functionName} not found in database module`)
           return res.status(400).json({ error: `Function ${functionName} not found` })
         }
+        
+        console.log(`   ✅ Function found, calling with ${args?.length || 0} arguments...`)
         
         // Call the function with arguments
         const result = await func(...(args || []))
         
-        res.json({ success: true, data: result })
+        console.log(`   ✅ Function executed successfully`)
+        console.log(`   Result type: ${typeof result}, is array: ${Array.isArray(result)}`)
+        if (Array.isArray(result)) {
+          console.log(`   Result length: ${result.length}`)
+        }
+        
+        const response = { success: true, data: result }
+        console.log(`   📤 Sending response:`, { success: true, dataType: typeof result })
+        res.json(response)
       } catch (error: any) {
-        console.error('DB Execute error:', error)
+        console.error('❌ DB Execute error:', error)
+        console.error('   Stack:', error.stack)
         res.status(500).json({ 
           success: false, 
           error: error.message,

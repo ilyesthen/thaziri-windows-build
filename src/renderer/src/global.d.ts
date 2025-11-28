@@ -210,6 +210,7 @@ interface ElectronAPI {
     stopBroadcasting: () => Promise<{ success: boolean; error?: string }>
     getActiveUsers: () => Promise<NetworkUser[]>
     onUsersUpdate: (callback: (users: NetworkUser[]) => void) => () => void
+    onShowError: (callback: (error: { title: string; message: string }) => void) => void
   }
   
   messaging: {

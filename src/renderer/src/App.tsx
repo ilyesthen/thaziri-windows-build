@@ -14,6 +14,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 // import HiIlyesPage from './components/HiIlyesPage' // Kept for reference but not used
 import FloatingAIChat from './components/FloatingAIChat'
 import MessageListener from './components/MessageListener'
+import { ErrorNotification } from './components/ErrorNotification'
 // import FloatingMessagingButtons from './components/FloatingMessagingButtons' // Removed floating messaging buttons
 import { useAuthStore } from './store/authStore'
 
@@ -192,6 +193,8 @@ function App() {
         </Routes>
         {/* Message Listener for room-based messaging */}
         <MessageListener />
+        {/* Error Notification for database and connection errors */}
+        <ErrorNotification />
         {/* Floating AI Chat for doctors and assistants */}
         <FloatingAIChat />
         {/* Floating Messaging Buttons removed */}

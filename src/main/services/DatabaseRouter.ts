@@ -87,6 +87,18 @@ export function setDatabaseClient(client: DatabaseClient): void {
   databaseClient = client
   currentMode = 'client'
   console.log('✅ Database client set, mode: client')
+  console.log('   databaseClient is null?', databaseClient === null)
+  console.log('   currentMode:', currentMode)
+}
+
+/**
+ * Get the current mode
+ */
+export async function getMode(): Promise<DatabaseMode> {
+  if (currentMode === null) {
+    currentMode = await detectMode()
+  }
+  return currentMode
 }
 
 /**
@@ -382,21 +394,32 @@ export const getUnreadMessageCount = (userId: number, roomId?: string) => execut
  * Execute a database function - routes to HTTP client or direct call
  */
 async function executeDbFunction(functionName: string, ...args: any[]): Promise<any> {
+  console.log(`🔀 executeDbFunction: ${functionName}`)
+  console.log(`   Mode: ${currentMode}`)
+  console.log(`   Has client: ${databaseClient !== null}`)
+  
   if (currentMode === 'client' && databaseClient) {
     // Client mode: Call via HTTP
+    console.log(`   ✅ Using CLIENT MODE for ${functionName}`)
     try {
+      console.log(`   📡 Calling HTTP endpoint: /db/execute with args:`, args)
       const result = await databaseClient.executeDatabaseFunction(functionName, ...args)
+      console.log(`   📥 HTTP response:`, result)
+      
       if (result.success) {
+        console.log(`   ✅ Success! Returning data`)
         return result.data
       }
       throw new Error(result.error || 'Database function failed')
     } catch (error: any) {
       console.error(`❌ Client mode error calling ${functionName}:`, error.message)
+      console.error(`   Full error:`, error)
       throw error
     }
   }
   
   // Admin mode: Direct call
+  console.log(`   ✅ Using ADMIN MODE for ${functionName}`)
   const func = (db as any)[functionName]
   if (!func) {
     throw new Error(`Function ${functionName} not found in database module`)

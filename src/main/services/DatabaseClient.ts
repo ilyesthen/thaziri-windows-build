@@ -67,13 +67,28 @@ export class DatabaseClient {
   // Execute any database function by name
   async executeDatabaseFunction(functionName: string, ...args: any[]): Promise<any> {
     try {
+      console.log(`📡 CLIENT HTTP REQUEST: /db/execute`)
+      console.log(`   Function: ${functionName}`)
+      console.log(`   Args:`, args)
+      
       const response = await this.client.post('/db/execute', {
         functionName,
         args
       })
+      
+      console.log(`✅ CLIENT HTTP RESPONSE:`)
+      console.log(`   Status: ${response.status}`)
+      console.log(`   Data:`, response.data)
+      
       return response.data
     } catch (error: any) {
-      console.error(`Database function ${functionName} error:`, error)
+      console.error(`❌ Database function ${functionName} error:`)
+      console.error(`   Error message:`, error.message)
+      if (error.response) {
+        console.error(`   Response status:`, error.response.status)
+        console.error(`   Response data:`, error.response.data)
+      }
+      console.error(`   Full error:`, error)
       throw new Error(error.response?.data?.error || error.message)
     }
   }

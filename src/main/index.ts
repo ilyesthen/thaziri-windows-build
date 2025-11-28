@@ -143,6 +143,37 @@ app.whenReady().then(async () => {
     // Initialize Database Router (detects admin/client mode)
     await dbRouter.initializeDatabaseRouter()
     
+    // AUTO-START SERVER IN ADMIN MODE
+    const mode = await dbRouter.getMode()
+    if (mode === 'admin') {
+      console.log('🚀 Admin mode detected - Auto-starting database server...')
+      try {
+        const prismaClient = db.getPrismaClient()
+        databaseServer = new DatabaseServer(prismaClient)
+        const result = await databaseServer.start()
+        
+        if (result.success) {
+          console.log(`✅ Database server auto-started:`)
+          console.log(`   IP: ${result.ip}`)
+          console.log(`   Port: ${result.port}`)
+          console.log(`   URL: http://${result.ip}:${result.port}`)
+          
+          // Start discovery responder
+          if (serverDiscovery) {
+            serverDiscovery.stop()
+          }
+          serverDiscovery = new ServerDiscovery()
+          const computerName = require('os').hostname()
+          await serverDiscovery.startBroadcastResponder(result.port!, computerName)
+          console.log('   Discovery service started')
+        } else {
+          console.error('❌ Failed to auto-start server:', result.error)
+        }
+      } catch (error) {
+        console.error('❌ Server auto-start error:', error)
+      }
+    }
+    
     // Register ordonnance IPC handlers after database is ready
     registerOrdonnanceHandlers()
   } catch (error) {
@@ -379,9 +410,23 @@ ipcMain.handle('db:createUser', async (_event, data: { name: string; email: stri
 // Get all users (excluding admins, passwords removed)
 ipcMain.handle('db:getAllUsers', async () => {
   try {
-    return await dbRouter.getAllUsersForManagement()
-  } catch (error) {
-    console.error('Error getting users:', error)
+    console.log('🔍 Fetching all users...')
+    const users = await dbRouter.getAllUsersForManagement()
+    console.log(`✅ Fetched ${users.length} users`)
+    return users
+  } catch (error: any) {
+    console.error('❌ ERROR LOADING USERS:', error)
+    console.error('   Error message:', error.message)
+    console.error('   Stack:', error.stack)
+    
+    // Send user-friendly error notification to renderer
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('show-error', {
+        title: '❌ Impossible de charger les utilisateurs',
+        message: `Erreur: ${error.message}\n\nVérifiez:\n- Le serveur Admin est démarré\n- La connexion réseau fonctionne\n- Le client est connecté au serveur`
+      })
+    }
+    
     throw error
   }
 })
@@ -521,16 +566,34 @@ ipcMain.handle('db:createTag', async (_event, data: db.CreateTagInput) => {
     return await dbRouter.createTag(data)
   } catch (error) {
     console.error('Error creating tag:', error)
-    throw error
+    
+    // Send error notification to renderer
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('show-error', {
+        title: 'Erreur de création de tag',
+        message: `Impossible de créer le tag.\n\n${error.message}`
+      })
+    }
+    
+    throw new Error(`Could not create tag: ${error.message}`)
   }
 })
 
 ipcMain.handle('db:getAllTags', async () => {
   try {
     return await dbRouter.getAllTags()
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting tags:', error)
-    throw error
+    
+    // Send error notification to renderer
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('show-error', {
+        title: 'Erreur de chargement des tags',
+        message: `Impossible de charger les tags.\n\n${error.message}`
+      })
+    }
+    
+    throw new Error(`Could not load tags: ${error.message}`)
   }
 })
 

@@ -334,6 +334,9 @@ const electronAPI = {
         ipcRenderer.removeListener('network:users-update', subscription)
       }
     },
+    onShowError: (callback: (error: { title: string; message: string }) => void) => {
+      ipcRenderer.on('show-error', (_event, error) => callback(error))
+    },
   },
 
   // Messaging API
