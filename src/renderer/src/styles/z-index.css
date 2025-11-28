@@ -207,3 +207,39 @@ form, .form-group, .input-group {
   position: relative;
   z-index: auto !important;
 }
+
+/* ==================== INSTANT CLICKABILITY FIX ==================== */
+
+/* Remove ALL transition delays that might make fields feel sluggish */
+input, select, textarea, button {
+  transition: none !important;
+}
+
+/* Disable any overlay/backdrop transitions that delay clickability */
+.modal-overlay,
+div[class*="modal"],
+div[class*="backdrop"],
+div[style*="position: fixed"] {
+  transition: opacity 0ms !important;
+  transition-delay: 0ms !important;
+}
+
+/* NUCLEAR OPTION: When modal closes, IMMEDIATELY remove all blocking */
+.modal-overlay:not([style*="display: block"]),
+div[class*="modal"]:not([style*="display: block"]) {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  z-index: -9999 !important;
+}
+
+/* Force ALL page content to be immediately interactive */
+* {
+  -webkit-user-select: auto !important;
+  user-select: auto !important;
+}
+
+/* Remove any pointer-events: none from parent containers */
+div[style*="pointer-events: none"]:not(.modal-overlay) {
+  pointer-events: auto !important;
+}

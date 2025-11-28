@@ -365,9 +365,36 @@ ipcMain.handle('auth:verify-credentials', async (_event, email: string, password
 // Legacy alias for backwards compatibility
 ipcMain.handle('auth:login', async (_event, email: string, password: string) => {
   try {
-    return await dbRouter.verifyUserCredentials(email, password)
-  } catch (error) {
-    console.error('Error during login:', error)
+    console.log('\n🔑 ══════════════════════════════════════')
+    console.log('🔑 LOGIN ATTEMPT')
+    console.log('🔑 ══════════════════════════════════════')
+    console.log(`   Email/Username: ${email}`)
+    console.log(`   Password length: ${password?.length || 0} chars`)
+    
+    console.log('\n📋 Verifying credentials via DatabaseRouter...')
+    const result = await dbRouter.verifyUserCredentials(email, password)
+    
+    console.log('\n📥 Verification result received:')
+    console.log('   Success:', result?.success)
+    if (result?.success) {
+      console.log('   User:', result.user?.username)
+      console.log('   Role:', result.user?.role)
+      console.log('\n✅ LOGIN SUCCESSFUL!')
+    } else {
+      console.log('   Error:', result?.error || 'Invalid credentials')
+      console.log('\n❌ LOGIN FAILED!')
+    }
+    console.log('🔑 ══════════════════════════════════════\n')
+    
+    return result
+  } catch (error: any) {
+    console.error('\n❌ ══════════════════════════════════════')
+    console.error('❌ LOGIN EXCEPTION!')
+    console.error('❌ ══════════════════════════════════════')
+    console.error('   Error message:', error.message)
+    console.error('   Error stack:', error.stack)
+    console.error('🔑 ══════════════════════════════════════\n')
+    
     return {
       success: false,
       error: 'Invalid credentials'

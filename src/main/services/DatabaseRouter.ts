@@ -154,131 +154,46 @@ export function getCurrentMode(): DatabaseMode {
 // ==================== PATIENT OPERATIONS ====================
 
 export async function getAllPatients(limit?: number, offset?: number): Promise<any[]> {
-  if (currentMode === 'client' && databaseClient) {
-    const result = await databaseClient.executeQuery('patient', 'findMany', [{
-      take: limit || 100,
-      skip: offset || 0,
-      orderBy: { id: 'desc' }
-    }])
-    return result.data || []
-  }
-  
-  // Admin mode: Direct Prisma
-  return await db.getAllPatients(limit, offset)
+  return await executeDbFunction('getAllPatients', limit, offset)
 }
 
 export async function getPatientsCount(): Promise<number> {
-  if (currentMode === 'client' && databaseClient) {
-    const result = await databaseClient.executeQuery('patient', 'count', [])
-    return result.data || 0
-  }
-  
-  return await db.getPatientsCount()
+  return await executeDbFunction('getPatientsCount')
 }
 
 export async function getPatientById(id: number): Promise<any> {
-  if (currentMode === 'client' && databaseClient) {
-    const result = await databaseClient.executeQuery('patient', 'findUnique', [{
-      where: { id }
-    }])
-    return result.data || null
-  }
-  
-  return await db.getPatientById(id)
+  return await executeDbFunction('getPatientById', id)
 }
 
 export async function getPatientByCode(code: number): Promise<any> {
-  if (currentMode === 'client' && databaseClient) {
-    const result = await databaseClient.executeQuery('patient', 'findUnique', [{
-      where: { departmentCode: code },
-      include: {
-        visits: {
-          orderBy: { id: 'desc' },
-          take: 10
-        }
-      }
-    }])
-    return result.data || null
-  }
-  
-  return await db.getPatientByCode(code)
+  return await executeDbFunction('getPatientByCode', code)
 }
 
 export async function createPatient(data: any): Promise<any> {
-  if (currentMode === 'client' && databaseClient) {
-    const result = await databaseClient.executeQuery('patient', 'create', [{
-      data
-    }])
-    return result.data
-  }
-  
-  return await db.createPatient(data)
+  return await executeDbFunction('createPatient', data)
 }
 
 export async function updatePatient(data: any): Promise<any> {
-  if (currentMode === 'client' && databaseClient) {
-    const result = await databaseClient.executeQuery('patient', 'update', [{
-      where: { departmentCode: data.departmentCode },
-      data
-    }])
-    return result.data
-  }
-  
-  return await db.updatePatient(data)
+  return await executeDbFunction('updatePatient', data)
 }
 
 export async function deletePatient(code: number): Promise<any> {
-  if (currentMode === 'client' && databaseClient) {
-    const result = await databaseClient.executeQuery('patient', 'delete', [{
-      where: { departmentCode: code }
-    }])
-    return result.data
-  }
-  
-  return await db.deletePatient(code)
+  return await executeDbFunction('deletePatient', code)
 }
 
 export async function searchPatients(query: string): Promise<any[]> {
-  if (currentMode === 'client' && databaseClient) {
-    const result = await databaseClient.executeQuery('patient', 'findMany', [{
-      where: {
-        OR: [
-          { firstName: { contains: query } },
-          { lastName: { contains: query } },
-          { departmentCode: { equals: parseInt(query) || 0 } }
-        ]
-      },
-      take: 50,
-      orderBy: { id: 'desc' }
-    }])
-    return result.data || []
-  }
-  
-  return await db.searchPatients(query)
+  return await executeDbFunction('searchPatients', query)
 }
 
 // ==================== USER OPERATIONS ====================
 
 export async function verifyUserCredentials(email: string, password: string): Promise<any> {
-  if (currentMode === 'client' && databaseClient) {
-    // For login, we need server-side password validation for security
-    // This should be a dedicated endpoint on the server
-    // For now, call the local function (will add server endpoint later)
-    return await db.verifyUserCredentials(email, password)
-  }
-  
-  return await db.verifyUserCredentials(email, password)
+  // Use the router to handle both admin and client modes
+  return await executeDbFunction('verifyUserCredentials', email, password)
 }
 
 export async function getAllUsers(): Promise<any[]> {
-  if (currentMode === 'client' && databaseClient) {
-    const result = await databaseClient.executeQuery('user', 'findMany', [{
-      orderBy: { createdAt: 'desc' }
-    }])
-    return result.data || []
-  }
-  
-  return await db.getAllUsers()
+  return await executeDbFunction('getAllUsers')
 }
 
 // ==================== VISIT OPERATIONS ====================
