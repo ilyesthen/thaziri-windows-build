@@ -941,9 +941,19 @@ export async function createPatient(data: CreatePatientInput): Promise<any> {
 
   const client = getPrismaClient()
   
+  // Auto-assign next available departmentCode
+  const maxCode = await client.patient.aggregate({
+    _max: {
+      departmentCode: true
+    }
+  })
+  
+  const nextDepartmentCode = (maxCode._max.departmentCode || 0) + 1
+  
   // Execute parameterized INSERT via Prisma
   const patient = await client.patient.create({
     data: {
+      departmentCode: nextDepartmentCode,
       firstName: data.firstName.trim(),
       lastName: data.lastName.trim(),
       fullName: `${data.lastName.trim()}${data.firstName.trim()}`.toUpperCase(),

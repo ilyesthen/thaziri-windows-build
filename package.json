@@ -23,7 +23,11 @@
     "db:import-visits": "tsx scripts/import-visit-examinations.ts",
     "db:import-export": "tsx scripts/import-from-export.ts",
     "db:import-medicines": "tsx scripts/import-medicines.ts",
-    "db:verify-import": "tsx scripts/verify-import.ts"
+    "db:verify-import": "tsx scripts/verify-import.ts",
+    "db:import-visits-xml": "tsx scripts/import-visits.ts",
+    "db:import-payments-xml": "tsx scripts/import-payments.ts",
+    "db:import-ordonnances-xml": "tsx scripts/import-ordonnances.ts",
+    "db:fresh-import": "tsx scripts/fresh-database-import.ts"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
