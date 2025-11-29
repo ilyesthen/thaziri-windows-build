@@ -211,8 +211,8 @@ const RoomBasedReceiveMessageModal: React.FC<RoomBasedReceiveMessageModalProps> 
 
   // Render for Nurses: Two-window layout for room messages
   if (isNurse) {
-    const window1Room = selectedRooms.window1 || 1
-    const window2Room = selectedRooms.window2 || 2
+    const window1Room = selectedRooms?.window1 || 1
+    const window2Room = selectedRooms?.window2 || 2
     
     const window1Messages = getRoomMessages(window1Room)
     const window2Messages = getRoomMessages(window2Room)

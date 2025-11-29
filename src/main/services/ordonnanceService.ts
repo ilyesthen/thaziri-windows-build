@@ -97,12 +97,21 @@ export function registerOrdonnanceHandlers() {
   // Get all quantities
   ipcMain.handle('quantities:getAll', async () => {
     try {
+      const mode = await dbRouter.getMode()
+      
+      if (mode === 'client') {
+        const serverUrl = getServerUrl()
+        if (!serverUrl) throw new Error('Server URL not configured')
+        const response = await axios.get(`${serverUrl}/api/quantities`)
+        return response.data
+      }
+      
       const prisma = getPrismaClient()
       const quantities = await prisma.quantity.findMany({
         orderBy: { id: 'asc' }
       })
       return { success: true, data: quantities }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching quantities:', error)
       return { success: false, error: error.message }
     }
@@ -111,6 +120,15 @@ export function registerOrdonnanceHandlers() {
   // Get ordonnances for a patient
   ipcMain.handle('ordonnances:getByPatient', async (_, patientCode: number) => {
     try {
+      const mode = await dbRouter.getMode()
+      
+      if (mode === 'client') {
+        const serverUrl = getServerUrl()
+        if (!serverUrl) throw new Error('Server URL not configured')
+        const response = await axios.get(`${serverUrl}/api/ordonnances/${patientCode}`)
+        return response.data
+      }
+      
       const prisma = getPrismaClient()
       const ordonnances = await prisma.ordonnance.findMany({
         where: { patientCode },
@@ -120,7 +138,7 @@ export function registerOrdonnanceHandlers() {
         ]
       })
       return { success: true, data: ordonnances }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching ordonnances:', error)
       return { success: false, error: error.message }
     }
@@ -296,6 +314,15 @@ export function registerOrdonnanceHandlers() {
   // Get all comptes rendus templates
   ipcMain.handle('comptesRendus:getAll', async () => {
     try {
+      const mode = await dbRouter.getMode()
+      
+      if (mode === 'client') {
+        const serverUrl = getServerUrl()
+        if (!serverUrl) throw new Error('Server URL not configured')
+        const response = await axios.get(`${serverUrl}/api/comptesRendus`)
+        return response.data
+      }
+      
       const prisma = getPrismaClient()
       const comptesRendus = await prisma.compteRendu.findMany({
         orderBy: {
@@ -303,7 +330,7 @@ export function registerOrdonnanceHandlers() {
         }
       })
       return { success: true, data: comptesRendus }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching comptes rendus:', error)
       return { success: false, error: error.message }
     }
