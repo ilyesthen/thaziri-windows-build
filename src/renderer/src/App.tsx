@@ -17,6 +17,7 @@ import MessageListener from './components/MessageListener'
 import { ErrorNotification } from './components/ErrorNotification'
 // import FloatingMessagingButtons from './components/FloatingMessagingButtons' // Removed floating messaging buttons
 import { useAuthStore } from './store/authStore'
+import { initializeInteractivityMonitor } from './utils/domEventFix'
 
 function App() {
   // Get authentication state from Zustand store
@@ -39,6 +40,9 @@ function App() {
     if (useAuthStore.persist.hasHydrated()) {
       setIsHydrated(true)
     }
+    
+    // Initialize DOM interactivity monitor to fix field clickability issues
+    initializeInteractivityMonitor()
     
     return unsubscribe
   }, [])

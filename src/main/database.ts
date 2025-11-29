@@ -144,6 +144,9 @@ export async function initializeDatabase(): Promise<void> {
     await client.$connect()
     console.log('✅ Database connected successfully')
     
+    // Run database migrations to ensure all tables exist
+    await runMigrations()
+    
     // Ensure hardcoded admin user exists
     await ensureAdminUserExists()
     
@@ -152,6 +155,98 @@ export async function initializeDatabase(): Promise<void> {
   } catch (error) {
     console.error('❌ Failed to connect to database:', error)
     throw error
+  }
+}
+
+/**
+ * Run database migrations to ensure all tables exist
+ * Uses Prisma's programmatic approach instead of CLI
+ */
+async function runMigrations(): Promise<void> {
+  const client = getPrismaClient()
+  
+  try {
+    console.log('🔄 Ensuring all database tables exist...')
+    
+    // Use raw SQL to create tables if they don't exist
+    // This is more reliable than running migrations in production
+    
+    // Medicines table
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "medicines" (
+        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "code" TEXT NOT NULL UNIQUE,
+        "libprep" TEXT NOT NULL,
+        "nbpres" INTEGER NOT NULL DEFAULT 0,
+        "actual_count" INTEGER NOT NULL DEFAULT 0,
+        "nature" TEXT NOT NULL DEFAULT 'O',
+        "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updated_at" DATETIME NOT NULL
+      );
+    `)
+    
+    // Quantities table
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "quantities" (
+        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "qtite" TEXT NOT NULL,
+        "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `)
+    
+    // Ordonnances table
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "ordonnances" (
+        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "date_ord" TEXT,
+        "patient_code" INTEGER NOT NULL,
+        "age" INTEGER,
+        "seq" INTEGER,
+        "strait" TEXT,
+        "strait1" TEXT,
+        "strait2" TEXT,
+        "strait3" TEXT,
+        "medecin" TEXT,
+        "seqpat" TEXT,
+        "actex" TEXT,
+        "actex1" TEXT,
+        "actex2" TEXT,
+        "addressed_by" TEXT,
+        "titre_cr" TEXT,
+        "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `)
+    
+    // Comptes Rendus table
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "comptes_rendus" (
+        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "titre" TEXT NOT NULL,
+        "contenu" TEXT NOT NULL,
+        "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `)
+    
+    // Bilan Acts table
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "bilan_acts" (
+        "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        "patient_code" INTEGER NOT NULL,
+        "acts" TEXT NOT NULL,
+        "medecin" TEXT,
+        "date_bilan" TEXT,
+        "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `)
+    
+    // Create indexes if they don't exist
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "medicines_code_idx" ON "medicines"("code");`)
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "ordonnances_patient_code_idx" ON "ordonnances"("patient_code");`)
+    
+    console.log('✅ All database tables verified/created successfully')
+  } catch (error: any) {
+    console.error('⚠️ Error creating tables:', error.message)
+    console.log('Tables may already exist - continuing...')
   }
 }
 

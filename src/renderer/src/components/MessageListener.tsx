@@ -19,10 +19,9 @@ const MessageListener: React.FC = () => {
         id: messageId
       }
 
-      // Play notification sound
-      const audio = new Audio('/notification.mp3')
-      audio.play().catch(e => console.log('Could not play notification sound:', e))
-
+      // Play notification sound (removed - file path issues in production build)
+      // TODO: Add proper notification sound using Electron resources
+      
       // Route message based on user role and message type
       const isNurse = user.role === 'nurse'
       const isDoctor = user.role === 'doctor'
@@ -59,8 +58,8 @@ const MessageListener: React.FC = () => {
       // Show desktop notification
       if ('Notification' in window && Notification.permission === 'granted') {
         const notification = new Notification(`Nouveau message de ${message.senderName}`, {
-          body: message.isVoiceMessage ? '🎤 Message vocal' : message.content,
-          icon: '/icon.png'
+          body: message.isVoiceMessage ? '🎤 Message vocal' : message.content
+          // icon removed - file path issues in production build
         })
 
         notification.onclick = () => {

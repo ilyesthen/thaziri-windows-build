@@ -63,9 +63,14 @@ const RoomBasedReceiveMessageModal: React.FC<RoomBasedReceiveMessageModalProps> 
       setSelectedRoom(null)
       setSelectedSenderId(null)
       
-      // Load messages from database for each room
+      // Mark all rooms as read when opening modal
       if (isNurse) {
-        // Load messages for all 3 rooms
+        // Mark all rooms as read immediately to clear notifications
+        markRoomAsRead(1)
+        markRoomAsRead(2)
+        markRoomAsRead(3)
+        
+        // Load messages from database for all 3 rooms
         [1, 2, 3].forEach(async (roomId) => {
           try {
             const result = await (window.electronAPI as any).messages?.getRoomMessages?.(roomId, 50)
