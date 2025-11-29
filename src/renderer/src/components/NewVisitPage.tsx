@@ -834,10 +834,19 @@ const NewVisitPage: React.FC = () => {
       }
     }
     
-    // Use payment reminder wrapper for navigation
-    await executeWithPaymentReminder(() => {
-      navigate(`/patient/${patientId}`)
-    })
+    // Check for payment - show reminder modal if needed
+    if (patient?.departmentCode && (user?.role === 'doctor' || user?.role === 'assistant_1' || user?.role === 'assistant_2')) {
+      const hasPayment = await checkPaymentValidation()
+      if (!hasPayment) {
+        // Show payment modal but DON'T block navigation
+        setShowPaymentModal(true)
+        setWantsToNavigate(true) // Set flag so modal closure navigates
+        return // Modal will handle navigation on close
+      }
+    }
+    
+    // No payment needed, navigate directly
+    navigate(`/patient/${patientId}`)
   }
 
   // Handle motif input change

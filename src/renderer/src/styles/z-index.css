@@ -208,36 +208,27 @@ form, .form-group, .input-group {
   z-index: auto !important;
 }
 
-/* ==================== SAFE CLICKABILITY FIXES ==================== */
+/* ==================== CLEAN Z-INDEX HIERARCHY ==================== */
 
-/* Only target actual modal overlays that should close */
+/* Hidden modals should not block interactions */
 .modal-overlay[style*="display: none"],
-.modal-overlay[style*="opacity: 0"] {
-  pointer-events: none !important;
-  z-index: -1 !important;
+.modal-backdrop[style*="display: none"] {
+  pointer-events: none;
+  visibility: hidden;
 }
 
-/* CRITICAL FIX: Ensure all buttons are always clickable */
-button:not([disabled]) {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  position: relative;
-  z-index: 1;
+/* Dropdowns should appear above content */
+.eye-dropdown,
+.motif-dropdown,
+.cycloplegie-dropdown,
+[class*="-dropdown"] {
+  z-index: 1000;
+  position: absolute;
 }
 
-/* Ensure all form inputs are always clickable */
-input:not([disabled]),
-select:not([disabled]),
-textarea:not([disabled]) {
-  pointer-events: auto !important;
-  position: relative;
-  z-index: 1;
-}
-
-/* Ensure links and interactive elements are clickable */
-a,
-[role="button"],
-[onclick] {
-  pointer-events: auto !important;
-  cursor: pointer;
+/* Disabled elements */
+[disabled],
+.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
