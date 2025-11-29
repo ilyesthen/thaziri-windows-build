@@ -66,6 +66,7 @@ const PatientManagementLayout: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState<boolean>(false)
   const [isSendModalOpen, setIsSendModalOpen] = useState<boolean>(false)
   const [isReceivedMessagesOpen, setIsReceivedMessagesOpen] = useState<boolean>(false)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false)
   const [isHonorairesModalOpen, setIsHonorairesModalOpen] = useState<boolean>(false)
   const [isComptabiliteOpen, setIsComptabiliteOpen] = useState<boolean>(false)
   const [isPaymentJournalOpen, setIsPaymentJournalOpen] = useState<boolean>(false)
@@ -619,8 +620,25 @@ const PatientManagementLayout: React.FC = () => {
 
   return (
     <div className="patient-management-layout">
+      {/* Mobile Menu Button (shows only on small screens) */}
+      <button 
+        className="mobile-menu-btn"
+        onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        aria-label="Toggle menu"
+      >
+        ☰
+      </button>
+
+      {/* Mobile Overlay (shows when sidebar is open on mobile) */}
+      {isMobileSidebarOpen && (
+        <div 
+          className="sidebar-overlay active"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="patient-sidebar">
+      <aside className={`patient-sidebar ${isMobileSidebarOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-header">
           <div style={{
             fontSize: '28px',
