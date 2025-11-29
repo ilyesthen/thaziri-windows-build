@@ -27,10 +27,10 @@ interface XmlPaymentData {
   'N__Enr.'?: string[]
   'CDEP'?: string[]
   'DATE'?: string[]
-  'ACTEX'?: string[]
-  'MT'?: string[]
+  'ACTE'?: string[]
+  'MONATNT'?: string[]
   'MEDCIN'?: string[]
-  'SEQPAT'?: string[]
+  'IDHONORAIRE'?: string[]
 }
 
 function getXmlValue(value: string[] | undefined): string | null {
@@ -86,23 +86,23 @@ async function importPayments() {
       try {
         const patientCode = getXmlValue(record.CDEP)
         const date = getXmlValue(record.DATE)
-        const actex = getXmlValue(record.ACTEX)
+        const acte = getXmlValue(record.ACTE)
         
         if (!patientCode || !date) {
           skipped++
           continue
         }
         
-        const montant = record.MT ? parseFloat(getXmlValue(record.MT) || '0') : 0
+        const montant = record.MONATNT ? parseFloat(getXmlValue(record.MONATNT) || '0') : 0
         
         await prisma.honoraire.create({
           data: {
             patientCode: parseInt(patientCode),
             date,
-            actex: actex || 'CONSULTATION',
+            time: '',
+            actePratique: acte || 'CONSULTATION',
             montant,
-            medecin: getXmlValue(record.MEDCIN),
-            seqpat: record.SEQPAT ? parseInt(getXmlValue(record.SEQPAT) || '0') : null,
+            medecin: getXmlValue(record.MEDCIN) || '',
           }
         })
         

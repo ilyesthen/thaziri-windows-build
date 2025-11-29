@@ -151,22 +151,39 @@ async function importVisits() {
           visitDate,
           medecin: getXmlValue(r.MEDCIN),
           motif: getXmlValue(r.MOTIF),
-          scod: getXmlValue(r.SCOD),
-          avod: getXmlValue(r.AVOD),
-          sphereOd: getXmlValue(r.p1),
-          cylindreOd: getXmlValue(r.p2),
-          axeOd: getXmlValue(r.AXD),
-          vlOd: getXmlValue(r.p4) || getXmlValue(r.vpppD),
-          scog: getXmlValue(r.SCOG),
-          avog: getXmlValue(r.AVOG),
-          sphereOg: getXmlValue(r.p3),
-          cylindreOg: getXmlValue(r.p5),
-          axeOg: getXmlValue(r.AXG),
-          vlOg: getXmlValue(r.p6) || getXmlValue(r.p7),
+          // Right Eye
+          svRight: getXmlValue(r.SCOD),
+          avRight: getXmlValue(r.AVOD),
+          sphereRight: getXmlValue(r.p1),
+          cylinderRight: getXmlValue(r.p2),
+          axisRight: getXmlValue(r.AXD),
+          vlRight: getXmlValue(r.p4) || getXmlValue(r.vpppD),
+          k1Right: getXmlValue(r.K1_D),
+          k2Right: getXmlValue(r.K2_D),
+          pachyRight: getXmlValue(r.pachy1_D),
+          toRight: getXmlValue(r.TOOD),
+          lafRight: getXmlValue(r.LAF),
+          foRight: getXmlValue(r.FO),
+          notesRight: getXmlValue(r.comentaire_D),
+          // Left Eye
+          svLeft: getXmlValue(r.SCOG),
+          avLeft: getXmlValue(r.AVOG),
+          sphereLeft: getXmlValue(r.p3),
+          cylinderLeft: getXmlValue(r.p5),
+          axisLeft: getXmlValue(r.AXG),
+          vlLeft: getXmlValue(r.p6) || getXmlValue(r.p7),
+          k1Left: getXmlValue(r.K1_G),
+          k2Left: getXmlValue(r.K2_G),
+          pachyLeft: getXmlValue(r.pachy1_g),
+          toLeft: getXmlValue(r.TOOG),
+          lafLeft: getXmlValue(r.LAF_G),
+          foLeft: getXmlValue(r.FO_G),
+          notesLeft: getXmlValue(r.commentaire_G),
+          // Common
           dip: getXmlValue(r.EP),
           cycloplegie: getXmlValue(r.cycloplégie),
           conduiteATenir: getXmlValue(r.CAT),
-          diagnostic: getXmlValue(r.DIAG) || getXmlValue(r.DIIAG),
+          diagnostic: getXmlValue(r.DIAG) || getXmlValue(r.DIIAG) || getXmlValue(r.ANG),
         }
       })
       imported++
@@ -212,10 +229,10 @@ async function importPayments() {
         data: {
           patientCode: parseInt(patientCode),
           date,
-          actex: getXmlValue(r.ACTEX) || 'CONSULTATION',
-          montant: r.MT ? parseFloat(getXmlValue(r.MT) || '0') : 0,
+          time: '',
+          actePratique: getXmlValue(r.ACTE) || 'CONSULTATION',
+          montant: r.MONATNT ? parseFloat(getXmlValue(r.MONATNT) || '0') : 0,
           medecin: getXmlValue(r.MEDCIN) || '',
-          seqpat: r.SEQPAT ? parseInt(getXmlValue(r.SEQPAT) || '0') : null,
         }
       })
       imported++
@@ -259,16 +276,16 @@ async function importOrdonnances() {
       await prisma.ordonnance.create({
         data: {
           patientCode: parseInt(patientCode),
-          dateOrd: getXmlValue(r.DATEORD) || '',
-          age: r.AG2 ? parseInt(getXmlValue(r.AG2) || '0') : null,
-          seq: r.SEQ ? parseInt(getXmlValue(r.SEQ) || '0') : null,
-          strait: getXmlValue(r.STRAIT) || '',
-          strait1: getXmlValue(r.strait1) || '',
-          strait2: getXmlValue(r.strait2) || '',
-          strait3: getXmlValue(r.strait3) || '',
-          medecin: getXmlValue(r.MEDCIN) || '',
-          actex: getXmlValue(r.ACTEX) || 'ORDONNANCE',
-          seqpat: r.SEQPAT ? parseInt(getXmlValue(r.SEQPAT) || '0') : null,
+          dateOrd: getXmlValue(r.DATEORD),
+          age: r.AG2 ? parseInt(getXmlValue(r.AG2) || '0') : undefined,
+          seq: r.SEQ ? parseInt(getXmlValue(r.SEQ) || '0') : undefined,
+          strait: getXmlValue(r.STRAIT),
+          strait1: getXmlValue(r.strait1),
+          strait2: getXmlValue(r.strait2),
+          strait3: getXmlValue(r.strait3),
+          medecin: getXmlValue(r.MEDCIN),
+          actex: getXmlValue(r.ACTEX),
+          seqpat: getXmlValue(r.SEQPAT),
         }
       })
       imported++
