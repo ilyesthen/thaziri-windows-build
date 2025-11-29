@@ -1,10 +1,32 @@
 /**
  * Ordonnance Service
  * Handles medicine, quantity, and prescription (ordonnance) data from database
+ * IMPORTANT: Uses DatabaseRouter to support both Admin and Client modes
  */
 
 import { ipcMain } from 'electron'
 import { getPrismaClient } from '../database'
+import * as dbRouter from './DatabaseRouter'
+import axios from 'axios'
+import fs from 'fs'
+import path from 'path'
+import { app } from 'electron'
+
+/**
+ * Get server URL for client mode
+ */
+function getServerUrl(): string | null {
+  try {
+    const userDataPath = app.getPath('userData')
+    const configPath = path.join(userDataPath, 'database-config.json')
+    if (!fs.existsSync(configPath)) return null
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
+    return config.serverUrl || null
+  } catch (error) {
+    console.error('Error reading server URL:', error)
+    return null
+  }
+}
 
 // Medicine-related handlers
 export function registerOrdonnanceHandlers() {
@@ -12,15 +34,24 @@ export function registerOrdonnanceHandlers() {
   // Get all medicines sorted by actual usage count
   ipcMain.handle('medicines:getAll', async () => {
     try {
+      const mode = await dbRouter.getMode()
+      console.log('📋 medicines:getAll - Mode:', mode)
+      
+      if (mode === 'client') {
+        // Client mode: HTTP call
+        const serverUrl = getServerUrl()
+        if (!serverUrl) throw new Error('Server URL not configured')
+        const response = await axios.get(`${serverUrl}/api/medicines`)
+        return response.data
+      }
+      
+      // Admin mode: Direct Prisma
       const prisma = getPrismaClient()
       const medicines = await prisma.medicine.findMany({
-        orderBy: [
-          { actualCount: 'desc' },
-          { nbpres: 'desc' }
-        ]
+        orderBy: [{ actualCount: 'desc' }, { nbpres: 'desc' }]
       })
       return { success: true, data: medicines }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching medicines:', error)
       return { success: false, error: error.message }
     }
